@@ -1,5 +1,5 @@
 import React from 'react';
-import { DocumentTextIcon, HomeIcon, UsersIcon, CubeIcon } from './icons';
+import { DocumentTextIcon, HomeIcon, UsersIcon, CubeIcon, CogIcon } from './icons';
 import { type View } from '../App';
 
 interface HeaderProps {
@@ -42,6 +42,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, onNavigate }) => {
              <NavItem label="Invoices" icon={<DocumentTextIcon className="h-5 w-5"/>} isActive={currentView === 'invoices'} onClick={() => onNavigate('invoices')} />
              <NavItem label="Clients" icon={<UsersIcon className="h-5 w-5"/>} isActive={currentView === 'clients'} onClick={() => onNavigate('clients')} />
              <NavItem label="Items" icon={<CubeIcon className="h-5 w-5"/>} isActive={currentView === 'items'} onClick={() => onNavigate('items')} />
+             <NavItem label="Settings" icon={<CogIcon className="h-5 w-5"/>} isActive={currentView === 'settings'} onClick={() => onNavigate('settings')} />
           </nav>
           <div>
             <div className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center text-xs font-bold text-slate-500">

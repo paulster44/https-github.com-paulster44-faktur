@@ -8,6 +8,18 @@ export interface Address {
   country: string;
 }
 
+export interface CompanyProfile {
+    name: string;
+    address: Address;
+    email: string;
+    phone?: string;
+    logo?: string; // base64 encoded image
+    invoiceNumberPrefix: string;
+    nextInvoiceNumber: number;
+    taxType?: string;
+    taxNumber?: string;
+}
+
 export interface Client {
   id: string;
   name: string;
@@ -31,6 +43,13 @@ export interface InvoiceLineItem {
   unitPrice: number;
 }
 
+export interface PaymentRecord {
+    date: string; // YYYY-MM-DD
+    amount: number;
+    method?: 'Credit Card' | 'Bank Transfer' | 'Cash' | 'Other';
+    note?: string;
+}
+
 export interface Invoice {
   id: string;
   invoiceNumber: string;
@@ -41,4 +60,5 @@ export interface Invoice {
   dueDate: string; // YYYY-MM-DD
   total: number;
   amountPaid: number;
+  paymentRecords: PaymentRecord[];
 }

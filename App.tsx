@@ -1,76 +1,91 @@
 import React, { useState, useEffect } from 'react';
-import { type Invoice, type Client, type Item } from './types';
+import { type Invoice, type Client, type Item, type CompanyProfile, type PaymentRecord } from './types';
 import { mockInvoices, mockClients, mockItems } from './services/geminiService';
 import Header from './components/Header';
-import HomePage from './components/ReceiptUploader';
+import HomePage from './components/HomePage';
 import InvoicesPage from './components/InvoicesPage';
 import ClientsPage from './components/ClientsPage';
 import ItemsPage from './components/ItemsPage';
 import InvoiceEditor from './components/InvoiceEditor';
+import CompanySetup from './components/CompanySetup';
+import SettingsPage from './components/SettingsPage';
 import { Toaster, toast } from './components/Toaster';
 
-export type View = 'home' | 'invoices' | 'clients' | 'items' | 'create-invoice';
+export type View = 'home' | 'invoices' | 'clients' | 'items' | 'create-invoice' | 'settings';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('home');
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [items, setItems] = useState<Item[]>([]);
+  const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
 
   useEffect(() => {
     try {
+      const storedProfile = localStorage.getItem('faktur-company-profile');
+      if (storedProfile) {
+        setCompanyProfile(JSON.parse(storedProfile));
+      }
+
       const storedInvoices = localStorage.getItem('faktur-invoices');
       const storedClients = localStorage.getItem('faktur-clients');
       const storedItems = localStorage.getItem('faktur-items');
       
-      if (storedInvoices && storedInvoices.length > 2) {
-        setInvoices(JSON.parse(storedInvoices));
-      } else {
-        setInvoices(mockInvoices);
-      }
-
-      if (storedClients && storedClients.length > 2) {
-        setClients(JSON.parse(storedClients));
-      } else {
-        setClients(mockClients);
-      }
-      
-      if (storedItems && storedItems.length > 2) {
-        setItems(JSON.parse(storedItems));
-      } else {
-        setItems(mockItems);
-      }
+      setInvoices(storedInvoices && storedInvoices.length > 2 ? JSON.parse(storedInvoices) : mockInvoices);
+      setClients(storedClients && storedClients.length > 2 ? JSON.parse(storedClients) : mockClients);
+      setItems(storedItems && storedItems.length > 2 ? JSON.parse(storedItems) : mockItems);
     } catch (e) {
       console.error("Failed to load data, falling back to mock data.", e);
       setInvoices(mockInvoices);
       setClients(mockClients);
       setItems(mockItems);
+    } finally {
+      setIsDataLoaded(true);
     }
   }, []);
 
   useEffect(() => {
+    if(!isDataLoaded) return;
+    try {
+      localStorage.setItem('faktur-company-profile', JSON.stringify(companyProfile));
+    } catch (e) {
+      console.error("Failed to save company profile", e);
+    }
+  }, [companyProfile, isDataLoaded]);
+
+
+  useEffect(() => {
+    if(!isDataLoaded) return;
     try {
       localStorage.setItem('faktur-invoices', JSON.stringify(invoices));
     } catch (e) {
       console.error("Failed to save invoices to localStorage", e);
     }
-  }, [invoices]);
+  }, [invoices, isDataLoaded]);
 
   useEffect(() => {
+    if(!isDataLoaded) return;
     try {
       localStorage.setItem('faktur-clients', JSON.stringify(clients));
     } catch(e) {
       console.error("Failed to save clients to localStorage", e);
     }
-  }, [clients]);
+  }, [clients, isDataLoaded]);
 
   useEffect(() => {
+    if(!isDataLoaded) return;
     try {
       localStorage.setItem('faktur-items', JSON.stringify(items));
     } catch(e) {
       console.error("Failed to save items to localStorage", e);
     }
-  }, [items]);
+  }, [items, isDataLoaded]);
+
+  const handleSaveProfile = (profile: CompanyProfile) => {
+    setCompanyProfile(profile);
+    toast.success("Company profile saved!");
+  }
 
   const addClient = (client: Omit<Client, 'id'>) => {
     const newClient = { ...client, id: `client-${Date.now()}` };
@@ -109,30 +124,60 @@ const App: React.FC = () => {
   };
 
   const addInvoice = (invoice: Omit<Invoice, 'id' | 'invoiceNumber'>) => {
-    const newInvoiceNumber = `2024-${(invoices.length + 1).toString().padStart(3, '0')}`;
-    const newInvoice = { 
+    if (!companyProfile) {
+        toast.error("Company profile is not set up.");
+        return;
+    }
+    
+    const newInvoiceNumber = `${companyProfile.invoiceNumberPrefix}${companyProfile.nextInvoiceNumber}`;
+    
+    const newInvoice: Invoice = { 
         ...invoice, 
         id: `inv-${Date.now()}`,
         invoiceNumber: newInvoiceNumber,
     };
+    
     setInvoices(prevInvoices => [newInvoice, ...prevInvoices]);
+    
+    // Increment the next invoice number in the company profile
+    setCompanyProfile(prevProfile => {
+        if (!prevProfile) return null;
+        return {
+            ...prevProfile,
+            nextInvoiceNumber: prevProfile.nextInvoiceNumber + 1,
+        };
+    });
+
     toast.success(`Invoice #${newInvoiceNumber} created!`);
     setCurrentView('invoices');
   };
-
+  
+  const updateInvoice = (invoiceId: string, updatedInvoiceData: Partial<Invoice>) => {
+    setInvoices(prev => prev.map(inv => inv.id === invoiceId ? {...inv, ...updatedInvoiceData} : inv));
+  }
 
   const renderContent = () => {
+    if (!isDataLoaded) {
+      return <div className="flex justify-center items-center h-screen"><p>Loading...</p></div>;
+    }
+
+    if (!companyProfile) {
+      return <CompanySetup onSave={handleSaveProfile} />;
+    }
+
     switch (currentView) {
       case 'home':
         return <HomePage invoices={invoices} onNavigate={setCurrentView} />;
       case 'invoices':
-        return <InvoicesPage invoices={invoices} onNavigate={setCurrentView} />;
+        return <InvoicesPage invoices={invoices} onNavigate={setCurrentView} onUpdateInvoice={updateInvoice} companyProfile={companyProfile} />;
       case 'clients':
         return <ClientsPage clients={clients} onAddClient={addClient} onUpdateClient={updateClient} onDeleteClient={deleteClient} />;
       case 'items':
         return <ItemsPage items={items} onAddItem={addItem} onUpdateItem={updateItem} onDeleteItem={deleteItem} />;
       case 'create-invoice':
-        return <InvoiceEditor clients={clients} items={items} onSaveInvoice={addInvoice} onCancel={() => setCurrentView('invoices')} />;
+        return <InvoiceEditor clients={clients} items={items} onSaveInvoice={addInvoice} onCancel={() => setCurrentView('invoices')} companyProfile={companyProfile} />;
+       case 'settings':
+        return <SettingsPage companyProfile={companyProfile} onSave={handleSaveProfile} />;
       default:
         return <HomePage invoices={invoices} onNavigate={setCurrentView} />;
     }
@@ -140,7 +185,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-200 font-sans">
-      <Header currentView={currentView} onNavigate={setCurrentView} />
+      {companyProfile && <Header currentView={currentView} onNavigate={setCurrentView} />}
       <main className="container mx-auto p-4 md:p-6">
         {renderContent()}
       </main>

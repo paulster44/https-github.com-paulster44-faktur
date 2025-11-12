@@ -26,6 +26,11 @@ export const CubeIcon: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
+export const CogIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12a7.5 7.5 0 0 0 15 0m-15 0a7.5 7.5 0 1 1 15 0m-15 0H3m18 0h-1.5m-15 0a7.5 7.5 0 1 1 15 0m-15 0h.008v.008H4.5v-.008Zm15 0h.008v.008h-.008v-.008Zm-7.5 0h.008v.008h-.008v-.008Zm0 0a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5ZM12 10.5a2.25 2.25 0 1 1 0 4.5 2.25 2.25 0 0 1 0-4.5ZM12 10.5V9m0 6V15m-3.75-3.75H6.75m6 0H17.25m-3.75 0a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5ZM12 10.5a2.25 2.25 0 1 1 0 4.5 2.25 2.25 0 0 1 0-4.5ZM12 10.5V9m0 6V15m-3.75-3.75H6.75m6 0H17.25" />
+  </svg>
+);
 
 // --- UI & Action Icons ---
 
