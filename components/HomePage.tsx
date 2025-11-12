@@ -2,6 +2,7 @@ import React from 'react';
 import { type Invoice, type InvoiceStatus } from '../types';
 import { PlusIcon, ClockIcon, CheckCircleIcon } from './icons';
 import { type View } from '../App';
+import { useLanguage } from '../i18n/LanguageProvider';
 
 interface HomePageProps {
   invoices: Invoice[];
@@ -13,6 +14,7 @@ const formatCurrency = (amount: number) => {
 };
 
 const StatusBadge: React.FC<{ status: InvoiceStatus }> = ({ status }) => {
+    const { t } = useLanguage();
     const statusStyles: { [key in InvoiceStatus]: string } = {
       DRAFT: 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300',
       SENT: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
@@ -22,13 +24,14 @@ const StatusBadge: React.FC<{ status: InvoiceStatus }> = ({ status }) => {
     };
     return (
         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusStyles[status]}`}>
-            {status.charAt(0) + status.slice(1).toLowerCase().replace('_', ' ')}
+            {t(`status.${status.toLowerCase()}`)}
         </span>
     );
 };
 
 
 const HomePage: React.FC<HomePageProps> = ({ invoices, onNavigate }) => {
+    const { t } = useLanguage();
     const outstanding = invoices
         .filter(inv => ['SENT', 'OVERDUE', 'PARTIALLY_PAID'].includes(inv.status))
         .reduce((sum, inv) => sum + (inv.total - inv.amountPaid), 0);
@@ -45,37 +48,37 @@ const HomePage: React.FC<HomePageProps> = ({ invoices, onNavigate }) => {
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white dark:bg-slate-800 p-5 rounded-lg shadow">
-                    <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Outstanding</h3>
+                    <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">{t('home.outstanding')}</h3>
                     <p className="mt-1 text-3xl font-semibold text-slate-900 dark:text-white">{formatCurrency(outstanding)}</p>
                 </div>
                 <div className="bg-white dark:bg-slate-800 p-5 rounded-lg shadow">
-                    <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Overdue</h3>
+                    <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">{t('home.overdue')}</h3>
                     <p className={`mt-1 text-3xl font-semibold ${overdue > 0 ? 'text-red-600 dark:text-red-500' : 'text-slate-900 dark:text-white'}`}>{formatCurrency(overdue)}</p>
                 </div>
                 <div className="bg-white dark:bg-slate-800 p-5 rounded-lg shadow">
-                    <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">In Draft</h3>
+                    <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">{t('home.inDraft')}</h3>
                     <p className="mt-1 text-3xl font-semibold text-slate-900 dark:text-white">{inDraft}</p>
                 </div>
             </div>
 
             <div className="bg-white dark:bg-slate-800 p-5 rounded-lg shadow flex items-center justify-between">
                 <div>
-                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Ready to get paid?</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Create and send a professional invoice in minutes.</p>
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{t('home.readyToGetPaid')}</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">{t('home.createInvoiceBanner')}</p>
                 </div>
                 <button
                     onClick={() => onNavigate('create-invoice')}
                     className="inline-flex items-center justify-center rounded-md border border-transparent bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
                 >
                     <PlusIcon className="-ml-1 mr-2 h-5 w-5"/>
-                    Create Invoice
+                    {t('home.createInvoice')}
                 </button>
             </div>
 
             <div className="bg-white dark:bg-slate-800 rounded-lg shadow">
                 <div className="p-5 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
-                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Recent Activity</h3>
-                    <button onClick={() => onNavigate('invoices')} className="text-sm font-medium text-sky-600 hover:text-sky-800 dark:text-sky-400 dark:hover:text-sky-300">View All</button>
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{t('home.recentActivity')}</h3>
+                    <button onClick={() => onNavigate('invoices')} className="text-sm font-medium text-sky-600 hover:text-sky-800 dark:text-sky-400 dark:hover:text-sky-300">{t('home.viewAll')}</button>
                 </div>
                 <ul className="divide-y divide-slate-200 dark:divide-slate-700">
                     {recentInvoices.map(invoice => (
@@ -89,7 +92,7 @@ const HomePage: React.FC<HomePageProps> = ({ invoices, onNavigate }) => {
                                 </div>
                                 <div className="ml-4">
                                     <div className="text-sm font-medium text-slate-900 dark:text-white">{invoice.client.name}</div>
-                                    <div className="text-sm text-slate-500 dark:text-slate-400">#{invoice.invoiceNumber} &bull; Due {invoice.dueDate}</div>
+                                    <div className="text-sm text-slate-500 dark:text-slate-400">#{invoice.invoiceNumber} &bull; {t('home.due')} {invoice.dueDate}</div>
                                 </div>
                             </div>
                             <div className="text-right">
@@ -99,7 +102,7 @@ const HomePage: React.FC<HomePageProps> = ({ invoices, onNavigate }) => {
                         </li>
                     ))}
                      {recentInvoices.length === 0 && (
-                        <li className="p-8 text-center text-sm text-slate-500">No recent invoices to display.</li>
+                        <li className="p-8 text-center text-sm text-slate-500">{t('home.noRecentInvoices')}</li>
                     )}
                 </ul>
             </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { type Invoice, type Client, type Item, type CompanyProfile, type PaymentRecord } from './types';
+import { type Invoice, type Client, type Item, type CompanyProfile } from './types';
 import { mockInvoices, mockClients, mockItems } from './services/geminiService';
 import Header from './components/Header';
 import HomePage from './components/HomePage';
@@ -10,16 +10,18 @@ import InvoiceEditor from './components/InvoiceEditor';
 import CompanySetup from './components/CompanySetup';
 import SettingsPage from './components/SettingsPage';
 import { Toaster, toast } from './components/Toaster';
+import { LanguageProvider, useLanguage } from './i18n/LanguageProvider';
 
 export type View = 'home' | 'invoices' | 'clients' | 'items' | 'create-invoice' | 'settings';
 
-const App: React.FC = () => {
+const MainApp: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('home');
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     try {
@@ -84,48 +86,48 @@ const App: React.FC = () => {
 
   const handleSaveProfile = (profile: CompanyProfile) => {
     setCompanyProfile(profile);
-    toast.success("Company profile saved!");
+    toast.success(t('toasts.profileSaved'));
   }
 
   const addClient = (client: Omit<Client, 'id'>) => {
     const newClient = { ...client, id: `client-${Date.now()}` };
     setClients(prevClients => [...prevClients, newClient]);
-    toast.success("Client added successfully!");
+    toast.success(t('toasts.clientAdded'));
   };
 
   const updateClient = (updatedClient: Client) => {
     setClients(prevClients => 
       prevClients.map(client => client.id === updatedClient.id ? updatedClient : client)
     );
-    toast.success("Client updated successfully!");
+    toast.success(t('toasts.clientUpdated'));
   };
 
   const deleteClient = (clientId: string) => {
     setClients(prevClients => prevClients.filter(client => client.id !== clientId));
-    toast.success("Client deleted successfully.");
+    toast.success(t('toasts.clientDeleted'));
   };
 
   const addItem = (item: Omit<Item, 'id'>) => {
     const newItem = { ...item, id: `item-${Date.now()}` };
     setItems(prevItems => [...prevItems, newItem]);
-    toast.success("Item added successfully!");
+    toast.success(t('toasts.itemAdded'));
   };
 
   const updateItem = (updatedItem: Item) => {
     setItems(prevItems =>
       prevItems.map(item => (item.id === updatedItem.id ? updatedItem : item))
     );
-    toast.success("Item updated successfully!");
+    toast.success(t('toasts.itemUpdated'));
   };
 
   const deleteItem = (itemId: string) => {
     setItems(prevItems => prevItems.filter(item => item.id !== itemId));
-    toast.success("Item deleted successfully.");
+    toast.success(t('toasts.itemDeleted'));
   };
 
   const addInvoice = (invoice: Omit<Invoice, 'id' | 'invoiceNumber'>) => {
     if (!companyProfile) {
-        toast.error("Company profile is not set up.");
+        toast.error(t('toasts.profileNotSet'));
         return;
     }
     
@@ -139,7 +141,6 @@ const App: React.FC = () => {
     
     setInvoices(prevInvoices => [newInvoice, ...prevInvoices]);
     
-    // Increment the next invoice number in the company profile
     setCompanyProfile(prevProfile => {
         if (!prevProfile) return null;
         return {
@@ -148,7 +149,7 @@ const App: React.FC = () => {
         };
     });
 
-    toast.success(`Invoice #${newInvoiceNumber} created!`);
+    toast.success(t('toasts.invoiceCreated', { number: newInvoiceNumber }));
     setCurrentView('invoices');
   };
   
@@ -158,7 +159,7 @@ const App: React.FC = () => {
 
   const renderContent = () => {
     if (!isDataLoaded) {
-      return <div className="flex justify-center items-center h-screen"><p>Loading...</p></div>;
+      return <div className="flex justify-center items-center h-screen"><p>{t('app.loading')}</p></div>;
     }
 
     if (!companyProfile) {
@@ -193,5 +194,11 @@ const App: React.FC = () => {
     </div>
   );
 };
+
+const App: React.FC = () => (
+  <LanguageProvider>
+    <MainApp />
+  </LanguageProvider>
+);
 
 export default App;

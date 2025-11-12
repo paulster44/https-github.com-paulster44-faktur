@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { type Item } from '../types';
 import { PlusIcon, PencilIcon, TrashIcon } from './icons';
+import { useLanguage } from '../i18n/LanguageProvider';
 
 interface ItemsPageProps {
     items: Item[];
@@ -26,6 +27,7 @@ const ItemFormModal: React.FC<{
     itemToEdit: Item | null;
 }> = ({ isOpen, onClose, onSave, itemToEdit }) => {
     const [item, setItem] = useState(itemToEdit || emptyItem);
+    const { t } = useLanguage();
 
     useEffect(() => {
         setItem(itemToEdit || emptyItem);
@@ -41,7 +43,7 @@ const ItemFormModal: React.FC<{
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!item.name) {
-            alert("Item name is required.");
+            alert(t('items.nameRequiredAlert'));
             return;
         }
         onSave(item);
@@ -53,19 +55,19 @@ const ItemFormModal: React.FC<{
             <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-lg m-4" onClick={e => e.stopPropagation()}>
                 <form onSubmit={handleSubmit}>
                     <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-                        <h3 className="text-xl font-semibold">{itemToEdit ? 'Edit Item' : 'Add New Item'}</h3>
+                        <h3 className="text-xl font-semibold">{itemToEdit ? t('items.editItem') : t('items.addNewItem')}</h3>
                     </div>
                     <div className="p-6 space-y-4">
                         <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-slate-700 dark:text-slate-300">Item Name</label>
+                            <label htmlFor="name" className="block text-sm font-medium text-slate-700 dark:text-slate-300">{t('items.itemName')}</label>
                             <input type="text" name="name" id="name" value={item.name} onChange={handleChange} required className="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm bg-white dark:bg-slate-700" />
                         </div>
                         <div>
-                            <label htmlFor="description" className="block text-sm font-medium text-slate-700 dark:text-slate-300">Description</label>
+                            <label htmlFor="description" className="block text-sm font-medium text-slate-700 dark:text-slate-300">{t('common.description')}</label>
                             <textarea name="description" id="description" value={item.description} onChange={handleChange} rows={3} className="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm bg-white dark:bg-slate-700" />
                         </div>
                         <div>
-                            <label htmlFor="unitPrice" className="block text-sm font-medium text-slate-700 dark:text-slate-300">Unit Price</label>
+                            <label htmlFor="unitPrice" className="block text-sm font-medium text-slate-700 dark:text-slate-300">{t('common.unitPrice')}</label>
                             <div className="relative mt-1 rounded-md shadow-sm">
                                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                                     <span className="text-gray-500 sm:text-sm">$</span>
@@ -75,8 +77,8 @@ const ItemFormModal: React.FC<{
                         </div>
                     </div>
                     <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 flex justify-end space-x-3 rounded-b-lg">
-                        <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm hover:bg-slate-50 dark:hover:bg-slate-600">Cancel</button>
-                        <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-sky-600 border border-transparent rounded-md shadow-sm hover:bg-sky-700">Save Item</button>
+                        <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm hover:bg-slate-50 dark:hover:bg-slate-600">{t('common.cancel')}</button>
+                        <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-sky-600 border border-transparent rounded-md shadow-sm hover:bg-sky-700">{t('items.saveItem')}</button>
                     </div>
                 </form>
             </div>
@@ -87,6 +89,7 @@ const ItemFormModal: React.FC<{
 const ItemsPage: React.FC<ItemsPageProps> = ({ items, onAddItem, onUpdateItem, onDeleteItem }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+    const { t } = useLanguage();
 
     const handleOpenModalForAdd = () => {
         setSelectedItem(null);
@@ -109,7 +112,7 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ items, onAddItem, onUpdateItem, o
     };
 
     const handleDelete = (itemId: string) => {
-        if (window.confirm("Are you sure you want to delete this item?")) {
+        if (window.confirm(t('items.deleteConfirm'))) {
             onDeleteItem(itemId);
         }
     }
@@ -117,19 +120,19 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ items, onAddItem, onUpdateItem, o
     return (
         <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg">
             <div className="p-4 md:p-6 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                <h2 className="text-xl font-bold">Items & Services</h2>
+                <h2 className="text-xl font-bold">{t('items.title')}</h2>
                 <button
                     onClick={handleOpenModalForAdd}
                     className="inline-flex items-center justify-center rounded-md border border-transparent bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
                 >
                     <PlusIcon className="-ml-1 mr-2 h-5 w-5"/>
-                    Add Item
+                    {t('items.addItem')}
                 </button>
             </div>
             {items.length === 0 ? (
                  <div className="p-12 text-center">
-                    <h3 className="text-lg font-medium text-slate-900 dark:text-white">No items found</h3>
-                    <p className="mt-1 text-sm text-slate-500">Click "Add Item" to create your first one.</p>
+                    <h3 className="text-lg font-medium text-slate-900 dark:text-white">{t('items.noItemsFound')}</h3>
+                    <p className="mt-1 text-sm text-slate-500">{t('items.noItemsMessage')}</p>
                 </div>
             ) : (
                 <ul className="divide-y divide-slate-200 dark:divide-slate-700">

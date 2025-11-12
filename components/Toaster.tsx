@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
+import { useLanguage } from '../i18n/LanguageProvider';
 
 type ToastType = 'success' | 'error';
 
@@ -46,6 +46,7 @@ export const toast = {
 
 
 const Toast: React.FC<{ message: ToastMessage; onDismiss: (id: number) => void }> = ({ message, onDismiss }) => {
+  const { t } = useLanguage();
   useEffect(() => {
     const timer = setTimeout(() => {
       onDismiss(message.id);
@@ -82,10 +83,10 @@ const Toast: React.FC<{ message: ToastMessage; onDismiss: (id: number) => void }
       <button
         type="button"
         className="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
-        aria-label="Close"
+        aria-label={t('common.close')}
         onClick={() => onDismiss(message.id)}
       >
-        <span className="sr-only">Close</span>
+        <span className="sr-only">{t('common.close')}</span>
         <svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
           <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
         </svg>
@@ -105,8 +106,9 @@ export const Toaster: React.FC = () => {
     const unsubscribe = toastStore.subscribe(setToasts);
     return () => unsubscribe();
   }, []);
-
+  
   const portalRoot = document.body;
+  if (!portalRoot) return null;
 
   return ReactDOM.createPortal(
     <div className="fixed top-5 right-5 z-50">

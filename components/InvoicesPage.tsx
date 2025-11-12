@@ -4,6 +4,7 @@ import { PlusIcon } from './icons';
 import { type View } from '../App';
 import InvoiceDesignStudio from './InvoiceDesignStudio';
 import InvoiceDetailsModal from './InvoiceDetailsModal';
+import { useLanguage } from '../i18n/LanguageProvider';
 
 interface InvoicesPageProps {
     invoices: Invoice[];
@@ -20,13 +21,14 @@ const formatCurrency = (amount: number | null) => {
 const formatDate = (dateString: string | null) => {
     if (!dateString) return 'N/A';
     try {
-        return new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
+        return new Date(dateString).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
     } catch {
         return dateString;
     }
 }
 
 const StatusBadge: React.FC<{ status: InvoiceStatus }> = ({ status }) => {
+    const { t } = useLanguage();
     const statusStyles: { [key in InvoiceStatus]: string } = {
       DRAFT: 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-300',
       SENT: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
@@ -36,28 +38,29 @@ const StatusBadge: React.FC<{ status: InvoiceStatus }> = ({ status }) => {
     };
     return (
         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusStyles[status]}`}>
-            {status.charAt(0) + status.slice(1).toLowerCase().replace('_', ' ')}
+            {t(`status.${status.toLowerCase()}`)}
         </span>
     );
 };
 
 const InvoiceList: React.FC<{ invoices: Invoice[]; onInvoiceSelect: (invoice: Invoice) => void; }> = ({ invoices, onInvoiceSelect }) => {
+    const { t } = useLanguage();
      return (
         <>
         {invoices.length === 0 ? (
             <div className="p-12 text-center">
-                <h3 className="text-lg font-medium text-slate-900 dark:text-white">No invoices yet</h3>
+                <h3 className="text-lg font-medium text-slate-900 dark:text-white">{t('invoices.noInvoicesYet')}</h3>
             </div>
         ) : (
             <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
                     <thead className="bg-slate-50 dark:bg-slate-700/50">
                         <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Number</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Client</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Due Date</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Status</th>
-                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Total</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('invoices.number')}</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('invoices.client')}</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('common.dueDate')}</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('invoices.status')}</th>
+                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('common.total')}</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
@@ -82,6 +85,7 @@ const InvoiceList: React.FC<{ invoices: Invoice[]; onInvoiceSelect: (invoice: In
 const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpdateInvoice, companyProfile }) => {
     const [activeTab, setActiveTab] = useState('list');
     const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+    const { t } = useLanguage();
 
     const handleCloseModal = () => setSelectedInvoice(null);
 
@@ -90,14 +94,14 @@ const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpd
             <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg">
                 <div className="p-4 md:p-6 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                         <h2 className="text-xl font-bold">Invoices</h2>
+                         <h2 className="text-xl font-bold">{t('header.invoices')}</h2>
                          <div className="border-l border-slate-300 dark:border-slate-600 h-6 mx-4"></div>
                          <nav className="flex space-x-1 rounded-md bg-slate-200 dark:bg-slate-900 p-1">
                             <button onClick={() => setActiveTab('list')} className={`px-3 py-1 text-sm font-medium rounded-md ${activeTab === 'list' ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-700/50'}`}>
-                                All Invoices
+                                {t('invoices.allInvoices')}
                             </button>
                             <button onClick={() => setActiveTab('design')} className={`px-3 py-1 text-sm font-medium rounded-md ${activeTab === 'design' ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-700/50'}`}>
-                                Design Studio
+                                {t('invoices.designStudio')}
                             </button>
                         </nav>
                     </div>
@@ -105,7 +109,7 @@ const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpd
                         onClick={() => onNavigate('create-invoice')}
                         className="inline-flex items-center justify-center rounded-md border border-transparent bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2">
                         <PlusIcon className="-ml-1 mr-2 h-5 w-5"/>
-                        New Invoice
+                        {t('invoices.newInvoice')}
                     </button>
                 </div>
                 
