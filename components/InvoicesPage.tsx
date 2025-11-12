@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { type Invoice, type InvoiceStatus, type CompanyProfile } from '../types';
 import { PlusIcon, TrashIcon, CheckCircleIcon } from './icons';
 import { type View } from '../App';
-import InvoiceDesignStudio from './InvoiceDesignStudio';
 import InvoiceDetailsModal from './InvoiceDetailsModal';
 import ConfirmationModal from './ConfirmationModal';
 import { useLanguage } from '../i18n/LanguageProvider';
@@ -116,7 +115,6 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, onInvoiceSelect, se
 
 
 const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpdateInvoice, onDeleteInvoices, onBulkMarkAsPaid, onEditInvoice, companyProfile }) => {
-    const [activeTab, setActiveTab] = useState('list');
     const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
     const [selectedInvoices, setSelectedInvoices] = useState<string[]>([]);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
@@ -172,18 +170,7 @@ const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpd
             <div className="relative bg-white dark:bg-slate-800 rounded-lg shadow-lg">
                 {selectedInvoices.length > 0 && <BulkActionsBar />}
                 <div className="p-4 md:p-6 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                         <h2 className="text-xl font-bold">{t('header.invoices')}</h2>
-                         <div className="border-l border-slate-300 dark:border-slate-600 h-6 mx-4"></div>
-                         <nav className="flex space-x-1 rounded-md bg-slate-200 dark:bg-slate-900 p-1">
-                            <button onClick={() => setActiveTab('list')} className={`px-3 py-1 text-sm font-medium rounded-md ${activeTab === 'list' ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-700/50'}`}>
-                                {t('invoices.allInvoices')}
-                            </button>
-                            <button onClick={() => setActiveTab('design')} className={`px-3 py-1 text-sm font-medium rounded-md ${activeTab === 'design' ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-700/50'}`}>
-                                {t('invoices.designStudio')}
-                            </button>
-                        </nav>
-                    </div>
+                     <h2 className="text-xl font-bold">{t('header.invoices')}</h2>
                     <button 
                         onClick={() => onNavigate('create-invoice')}
                         className="inline-flex items-center justify-center rounded-md border border-transparent bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2">
@@ -192,9 +179,8 @@ const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpd
                     </button>
                 </div>
                 
-                <div className={activeTab === 'list' ? "p-0" : "p-4 md:p-6"}>
-                    {activeTab === 'list' && <InvoiceList invoices={invoices} onInvoiceSelect={setSelectedInvoice} selectedInvoices={selectedInvoices} onSelectAll={handleSelectAll} onSelectOne={handleSelectOne} />}
-                    {activeTab === 'design' && <InvoiceDesignStudio companyProfile={companyProfile} />}
+                <div className="p-0">
+                    <InvoiceList invoices={invoices} onInvoiceSelect={setSelectedInvoice} selectedInvoices={selectedInvoices} onSelectAll={handleSelectAll} onSelectOne={handleSelectOne} />
                 </div>
             </div>
              {selectedInvoice && (

@@ -5,6 +5,7 @@
     "header": {
         "home": "Home",
         "invoices": "Invoices",
+        "reports": "Reports",
         "clients": "Clients",
         "items": "Items",
         "settings": "Settings"
@@ -23,6 +24,8 @@
         "edit": "Edit",
         "delete": "Delete",
         "close": "Close",
+        "print": "Print",
+        "export": "Export PDF",
         "description": "Description",
         "unitPrice": "Unit Price",
         "companyName": "Company Name",
@@ -77,7 +80,6 @@
     "invoices": {
         "newInvoice": "New Invoice",
         "allInvoices": "All Invoices",
-        "designStudio": "Design Studio",
         "noInvoicesYet": "No invoices yet",
         "number": "Number",
         "client": "Client",
@@ -100,18 +102,19 @@
         "itemDescriptionPlaceholder": "Item description",
         "addLineItem": "Add Line Item"
     },
-    "designStudio": {
-        "title": "Describe your invoice style",
-        "description": "Use natural language to describe the look and feel you want. Be creative!",
-        "promptPlaceholder": "A modern, minimalist design with a calm blue color scheme.",
-        "promptExample": "e.g., 'A professional design for a law firm, using serif fonts and a gold accent color.'",
-        "includeBackground": "Include a simple background",
-        "generateButton": "Generate Design",
-        "generatedCss": "Generated CSS",
-        "livePreview": "Live Preview",
-        "logoAlt": "Company Logo",
-        "yourCompany": "Your Company Inc.",
-        "thankYou": "Thank you for your business!"
+    "reports": {
+        "title": "Reports",
+        "description": "Get insights into your business performance.",
+        "totalRevenue": "Total Revenue",
+        "totalCollected": "Total Collected",
+        "outstanding": "Outstanding",
+        "dateRange": "Date Range",
+        "allTime": "All Time",
+        "revenueByClient": "Revenue by Client",
+        "client": "Client",
+        "invoices": "Invoices",
+        "amount": "Amount",
+        "noData": "No data available for the selected period."
     },
     "setup": {
         "welcome": "Welcome to Faktur",
@@ -130,6 +133,8 @@
     },
     "settings": {
         "description": "Manage your company profile and branding.",
+        "invoiceTemplate": "Invoice Template",
+        "templateDescription": "Choose a design for your invoices.",
         "companyLogo": "Company Logo",
         "logoAlt": "Company Logo",
         "noLogo": "No Logo",
@@ -169,11 +174,10 @@
         "invoiceCreated": "Invoice #{{number}} created!",
         "invoiceUpdated": "Invoice #{{number}} updated!",
         "paymentRecorded": "Payment recorded successfully!",
-        "designGenerated": "Design generated successfully!",
-        "designFailed": "Failed to generate design. The response was empty.",
-        "designError": "An error occurred while generating the design.",
         "invoicesDeleted": "{{count}} invoices deleted successfully.",
-        "invoicesMarkedAsPaid": "{{count}} invoices marked as paid."
+        "invoicesMarkedAsPaid": "{{count}} invoices marked as paid.",
+        "exporting": "Generating PDF...",
+        "exportFailed": "Failed to export PDF."
     },
     "status": {
         "draft": "Draft",

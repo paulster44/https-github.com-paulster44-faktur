@@ -5,6 +5,7 @@
     "header": {
         "home": "Home",
         "invoices": "Fatture",
+        "reports": "Report",
         "clients": "Clienti",
         "items": "Articoli",
         "settings": "Impostazioni"
@@ -23,6 +24,8 @@
         "edit": "Modifica",
         "delete": "Elimina",
         "close": "Chiudi",
+        "print": "Stampa",
+        "export": "Esporta PDF",
         "description": "Descrizione",
         "unitPrice": "Prezzo unitario",
         "companyName": "Nome dell'azienda",
@@ -77,7 +80,6 @@
     "invoices": {
         "newInvoice": "Nuova fattura",
         "allInvoices": "Tutte le fatture",
-        "designStudio": "Studio di design",
         "noInvoicesYet": "Ancora nessuna fattura",
         "number": "Numero",
         "client": "Cliente",
@@ -100,18 +102,19 @@
         "itemDescriptionPlaceholder": "Descrizione dell'articolo",
         "addLineItem": "Aggiungi riga"
     },
-    "designStudio": {
-        "title": "Descrivi lo stile della tua fattura",
-        "description": "Usa un linguaggio naturale per descrivere l'aspetto che desideri. Sii creativo!",
-        "promptPlaceholder": "Un design moderno e minimalista con una rilassante combinazione di colori blu.",
-        "promptExample": "es: 'Un design professionale per uno studio legale, con caratteri serif e un colore oro come accento.'",
-        "includeBackground": "Includi uno sfondo semplice",
-        "generateButton": "Genera design",
-        "generatedCss": "CSS generato",
-        "livePreview": "Anteprima dal vivo",
-        "logoAlt": "Logo aziendale",
-        "yourCompany": "La Tua Azienda Srl",
-        "thankYou": "Grazie per la vostra preferenza!"
+    "reports": {
+        "title": "Report",
+        "description": "Ottieni informazioni sulle prestazioni della tua attività.",
+        "totalRevenue": "Entrate totali",
+        "totalCollected": "Totale incassato",
+        "outstanding": "In sospeso",
+        "dateRange": "Intervallo di date",
+        "allTime": "Sempre",
+        "revenueByClient": "Entrate per cliente",
+        "client": "Cliente",
+        "invoices": "Fatture",
+        "amount": "Importo",
+        "noData": "Nessun dato disponibile per il periodo selezionato."
     },
     "setup": {
         "welcome": "Benvenuto in Faktur",
@@ -130,6 +133,8 @@
     },
     "settings": {
         "description": "Gestisci il profilo e il branding della tua azienda.",
+        "invoiceTemplate": "Modello di fattura",
+        "templateDescription": "Scegli un design per le tue fatture.",
         "companyLogo": "Logo aziendale",
         "logoAlt": "Logo aziendale",
         "noLogo": "Nessun logo",
@@ -169,11 +174,10 @@
         "invoiceCreated": "Fattura #{{number}} creata!",
         "invoiceUpdated": "Fattura #{{number}} aggiornata!",
         "paymentRecorded": "Pagamento registrato con successo!",
-        "designGenerated": "Design generato con successo!",
-        "designFailed": "Impossibile generare il design. La risposta era vuota.",
-        "designError": "Si è verificato un errore durante la generazione del design.",
         "invoicesDeleted": "{{count}} fatture eliminate con successo.",
-        "invoicesMarkedAsPaid": "{{count}} fatture contrassegnate come pagate."
+        "invoicesMarkedAsPaid": "{{count}} fatture contrassegnate come pagate.",
+        "exporting": "Generazione PDF in corso...",
+        "exportFailed": "Esportazione PDF non riuscita."
     },
     "status": {
         "draft": "Bozza",

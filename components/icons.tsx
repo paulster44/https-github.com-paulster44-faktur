@@ -38,7 +38,25 @@ export const GlobeIcon: React.FC<{ className?: string }> = ({ className }) => (
     </svg>
 );
 
+export const ChartBarIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+    </svg>
+);
+
 // --- UI & Action Icons ---
+
+export const PrinterIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6 3.129A1.5 1.5 0 0 1 7.5 2h9A1.5 1.5 0 0 1 18 3.13l-.72 10.699m-9.84-10.7a42.415 42.415 0 0 0 10.56 0c.12-.03.239-.06.357-.092M6.72 13.829L6.37 18.071A1.5 1.5 0 0 0 7.87 19.5h8.26a1.5 1.5 0 0 0 1.5-1.429l-.35-4.242M3.12 13.829c.04-.03.078-.062.117-.093l1.255-1.255A1.5 1.5 0 0 1 6.342 12h11.316a1.5 1.5 0 0 1 1.06.44l1.255 1.255c.039.03.077.062.117.093m-17.894 0h17.894Z" />
+    </svg>
+);
+
+export const ArrowDownTrayIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+    </svg>
+);
 
 export const PlusIcon: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>

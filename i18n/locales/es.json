@@ -5,6 +5,7 @@
     "header": {
         "home": "Inicio",
         "invoices": "Facturas",
+        "reports": "Informes",
         "clients": "Clientes",
         "items": "Artículos",
         "settings": "Configuración"
@@ -23,6 +24,8 @@
         "edit": "Editar",
         "delete": "Eliminar",
         "close": "Cerrar",
+        "print": "Imprimir",
+        "export": "Exportar a PDF",
         "description": "Descripción",
         "unitPrice": "Precio unitario",
         "companyName": "Nombre de la empresa",
@@ -77,7 +80,6 @@
     "invoices": {
         "newInvoice": "Nueva factura",
         "allInvoices": "Todas las facturas",
-        "designStudio": "Estudio de diseño",
         "noInvoicesYet": "Aún no hay facturas",
         "number": "Número",
         "client": "Cliente",
@@ -100,18 +102,19 @@
         "itemDescriptionPlaceholder": "Descripción del artículo",
         "addLineItem": "Añadir línea"
     },
-    "designStudio": {
-        "title": "Describa el estilo de su factura",
-        "description": "Use un lenguaje natural para describir el aspecto que desea. ¡Sea creativo!",
-        "promptPlaceholder": "Un diseño moderno y minimalista con una paleta de colores azules tranquilos.",
-        "promptExample": "ej: 'Un diseño profesional para un bufete de abogados, usando fuentes serif y un color dorado de acento.'",
-        "includeBackground": "Incluir un fondo simple",
-        "generateButton": "Generar diseño",
-        "generatedCss": "CSS generado",
-        "livePreview": "Vista previa en vivo",
-        "logoAlt": "Logotipo de la empresa",
-        "yourCompany": "Su Empresa S.A.",
-        "thankYou": "¡Gracias por su negocio!"
+    "reports": {
+        "title": "Informes",
+        "description": "Obtenga información sobre el rendimiento de su negocio.",
+        "totalRevenue": "Ingresos totales",
+        "totalCollected": "Total cobrado",
+        "outstanding": "Pendiente",
+        "dateRange": "Rango de fechas",
+        "allTime": "Desde siempre",
+        "revenueByClient": "Ingresos por cliente",
+        "client": "Cliente",
+        "invoices": "Facturas",
+        "amount": "Importe",
+        "noData": "No hay datos disponibles para el período seleccionado."
     },
     "setup": {
         "welcome": "Bienvenido a Faktur",
@@ -130,6 +133,8 @@
     },
     "settings": {
         "description": "Gestione el perfil y la marca de su empresa.",
+        "invoiceTemplate": "Plantilla de factura",
+        "templateDescription": "Elija un diseño para sus facturas.",
         "companyLogo": "Logotipo de la empresa",
         "logoAlt": "Logotipo de la empresa",
         "noLogo": "Sin logotipo",
@@ -169,11 +174,10 @@
         "invoiceCreated": "¡Factura #{{number}} creada!",
         "invoiceUpdated": "¡Factura #{{number}} actualizada!",
         "paymentRecorded": "¡Pago registrado con éxito!",
-        "designGenerated": "¡Diseño generado con éxito!",
-        "designFailed": "Error al generar el diseño. La respuesta estaba vacía.",
-        "designError": "Ocurrió un error al generar el diseño.",
         "invoicesDeleted": "{{count}} facturas eliminadas con éxito.",
-        "invoicesMarkedAsPaid": "{{count}} facturas marcadas como pagadas."
+        "invoicesMarkedAsPaid": "{{count}} facturas marcadas como pagadas.",
+        "exporting": "Generando PDF...",
+        "exportFailed": "Error al exportar a PDF."
     },
     "status": {
         "draft": "Borrador",

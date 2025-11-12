@@ -1,4 +1,18 @@
 export type InvoiceStatus = 'DRAFT' | 'SENT' | 'PAID' | 'OVERDUE' | 'PARTIALLY_PAID';
+export type TemplateId = 'modern' | 'classic' | 'minimalist';
+
+export interface Template {
+    id: TemplateId;
+    name: string;
+    css: string;
+}
+
+declare global {
+    interface Window {
+        html2canvas: any;
+        jspdf: any;
+    }
+}
 
 export interface Address {
   street: string;
@@ -18,6 +32,7 @@ export interface CompanyProfile {
     nextInvoiceNumber: number;
     taxType?: string;
     taxNumber?: string;
+    template: TemplateId;
 }
 
 export interface Client {

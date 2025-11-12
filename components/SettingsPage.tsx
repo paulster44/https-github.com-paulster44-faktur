@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { type CompanyProfile, type Address } from '../types';
+import { type CompanyProfile, type Address, type TemplateId } from '../types';
 import { useLanguage } from '../i18n/LanguageProvider';
+import { templates } from './templates';
 
 interface SettingsPageProps {
     companyProfile: CompanyProfile;
@@ -37,6 +38,10 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ companyProfile, onSave }) =
         }
     };
 
+    const handleTemplateChange = (templateId: TemplateId) => {
+        setProfile(prev => ({ ...prev, template: templateId }));
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         onSave(profile);
@@ -50,6 +55,23 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ companyProfile, onSave }) =
             </div>
             <form onSubmit={handleSubmit}>
                 <div className="p-4 md:p-6 space-y-8">
+                    {/* Invoice Template Section */}
+                     <div>
+                        <h3 className="text-lg font-medium text-slate-900 dark:text-white">{t('settings.invoiceTemplate')}</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t('settings.templateDescription')}</p>
+                        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                            {templates.map(template => (
+                                <div key={template.id} onClick={() => handleTemplateChange(template.id)} className="cursor-pointer group">
+                                    <div className={`rounded-lg border-2 p-1 transition-all ${profile.template === template.id ? 'border-sky-500' : 'border-slate-300 dark:border-slate-600 group-hover:border-sky-400'}`}>
+                                        <div className={`w-full h-40 rounded bg-slate-200 dark:bg-slate-700 flex items-center justify-center`}>
+                                            <p className="text-slate-500 dark:text-slate-400 font-semibold">{template.name}</p>
+                                        </div>
+                                    </div>
+                                    <p className={`mt-2 text-sm text-center font-medium transition-colors ${profile.template === template.id ? 'text-sky-600 dark:text-sky-400' : 'text-slate-700 dark:text-slate-300 group-hover:text-sky-500'}`}>{template.name}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                     {/* Logo Section */}
                     <div>
                         <h3 className="text-lg font-medium text-slate-900 dark:text-white">{t('settings.companyLogo')}</h3>
@@ -137,11 +159,11 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ companyProfile, onSave }) =
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">{t('setup.taxType')}</label>
-                                <input type="text" name="taxType" value={profile.taxType} onChange={handleChange} placeholder={t('setup.taxTypePlaceholder')} className="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm bg-white dark:bg-slate-700" />
+                                <input type="text" name="taxType" value={profile.taxType || ''} onChange={handleChange} placeholder={t('setup.taxTypePlaceholder')} className="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm bg-white dark:bg-slate-700" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">{t('setup.taxId')}</label>
-                                <input type="text" name="taxNumber" value={profile.taxNumber} onChange={handleChange} className="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm bg-white dark:bg-slate-700" />
+                                <input type="text" name="taxNumber" value={profile.taxNumber || ''} onChange={handleChange} className="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm bg-white dark:bg-slate-700" />
                             </div>
                          </div>
                     </div>

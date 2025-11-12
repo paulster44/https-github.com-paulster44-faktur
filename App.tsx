@@ -9,10 +9,11 @@ import ItemsPage from './components/ItemsPage';
 import InvoiceEditor from './components/InvoiceEditor';
 import CompanySetup from './components/CompanySetup';
 import SettingsPage from './components/SettingsPage';
+import ReportsPage from './components/ReportsPage';
 import { Toaster, toast } from './components/Toaster';
 import { LanguageProvider, useLanguage } from './i18n/LanguageProvider';
 
-export type View = 'home' | 'invoices' | 'clients' | 'items' | 'create-invoice' | 'settings';
+export type View = 'home' | 'invoices' | 'clients' | 'items' | 'create-invoice' | 'settings' | 'reports';
 
 const MainApp: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('home');
@@ -86,7 +87,11 @@ const MainApp: React.FC = () => {
   }, [items, isDataLoaded]);
 
   const handleSaveProfile = (profile: CompanyProfile) => {
-    setCompanyProfile(profile);
+    const profileToSave = {
+        ...profile,
+        template: profile.template || 'modern',
+    };
+    setCompanyProfile(profileToSave);
     toast.success(t('toasts.profileSaved'));
   }
 
@@ -211,6 +216,8 @@ const MainApp: React.FC = () => {
             onBulkMarkAsPaid={bulkMarkAsPaid}
             onEditInvoice={handleEditInvoice}
         />;
+      case 'reports':
+        return <ReportsPage invoices={invoices} clients={clients} />;
       case 'clients':
         return <ClientsPage clients={clients} onAddClient={addClient} onUpdateClient={updateClient} onDeleteClient={deleteClient} />;
       case 'items':
