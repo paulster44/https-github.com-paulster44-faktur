@@ -81,11 +81,17 @@
         "noInvoicesYet": "Aucune facture pour le moment",
         "number": "Numéro",
         "client": "Client",
-        "status": "Statut"
+        "status": "Statut",
+        "selected": "{{count}} sélectionné(s)",
+        "markAsPaid": "Marquer comme payée",
+        "deleteInvoicesTitle": "Supprimer {{count}} facture(s) ?",
+        "deleteInvoicesMessage": "Êtes-vous sûr de vouloir supprimer définitivement les factures sélectionnées ? Cette action est irréversible."
     },
     "invoiceEditor": {
         "newInvoice": "Nouvelle facture",
+        "editInvoice": "Modifier la facture #{{number}}",
         "saveInvoice": "Enregistrer la facture",
+        "updateInvoice": "Mettre à jour la facture",
         "from": "De",
         "billTo": "Facturer à",
         "selectClient": "Sélectionner un client...",
@@ -161,10 +167,13 @@
         "itemDeleted": "Article supprimé avec succès.",
         "profileNotSet": "Le profil de l'entreprise n'est pas configuré.",
         "invoiceCreated": "Facture #{{number}} créée !",
+        "invoiceUpdated": "Facture #{{number}} mise à jour !",
         "paymentRecorded": "Paiement enregistré avec succès !",
         "designGenerated": "Design généré avec succès !",
         "designFailed": "Échec de la génération du design. La réponse était vide.",
-        "designError": "Une erreur est survenue lors de la génération du design."
+        "designError": "Une erreur est survenue lors de la génération du design.",
+        "invoicesDeleted": "{{count}} factures supprimées avec succès.",
+        "invoicesMarkedAsPaid": "{{count}} factures marquées comme payées."
     },
     "status": {
         "draft": "Brouillon",

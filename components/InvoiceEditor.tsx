@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { type Client, type Item, type InvoiceLineItem, type Invoice, type CompanyProfile } from '../types';
 import { TrashIcon, PlusIcon } from './icons';
 import { useLanguage } from '../i18n/LanguageProvider';
@@ -6,19 +6,38 @@ import { useLanguage } from '../i18n/LanguageProvider';
 interface InvoiceEditorProps {
     clients: Client[];
     items: Item[];
-    onSaveInvoice: (invoice: Omit<Invoice, 'id' | 'invoiceNumber'>) => void;
+    onSave: (invoice: Invoice | Omit<Invoice, 'id' | 'invoiceNumber'>) => void;
     onCancel: () => void;
     companyProfile: CompanyProfile;
+    invoiceToEdit: Invoice | null;
 }
 
 const today = new Date().toISOString().split('T')[0];
+const emptyLineItem = { id: `li-${Date.now()}`, description: '', quantity: 1, unitPrice: 0 };
 
-const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ clients, items, onSaveInvoice, onCancel, companyProfile }) => {
+const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ clients, items, onSave, onCancel, companyProfile, invoiceToEdit }) => {
     const [selectedClientId, setSelectedClientId] = useState<string>('');
-    const [lineItems, setLineItems] = useState<InvoiceLineItem[]>([{ id: `li-${Date.now()}`, description: '', quantity: 1, unitPrice: 0 }]);
+    const [lineItems, setLineItems] = useState<InvoiceLineItem[]>([emptyLineItem]);
     const [issueDate, setIssueDate] = useState(today);
     const [dueDate, setDueDate] = useState(today);
     const { t } = useLanguage();
+
+    useEffect(() => {
+        if (invoiceToEdit) {
+            setSelectedClientId(invoiceToEdit.client.id);
+            // Deep copy to prevent direct state mutation
+            setLineItems(invoiceToEdit.lineItems.map(li => ({...li})));
+            setIssueDate(invoiceToEdit.issueDate);
+            setDueDate(invoiceToEdit.dueDate);
+        } else {
+            // Reset form for new invoice
+            setSelectedClientId('');
+            setLineItems([{ id: `li-${Date.now()}`, description: '', quantity: 1, unitPrice: 0 }]);
+            setIssueDate(today);
+            setDueDate(today);
+        }
+    }, [invoiceToEdit]);
+
 
     const handleClientChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedClientId(e.target.value);
@@ -68,28 +87,39 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ clients, items, onSaveInv
             return;
         }
 
-        const newInvoice: Omit<Invoice, 'id' | 'invoiceNumber'> = {
+        const commonData = {
             client: selectedClient,
             lineItems: lineItems.filter(li => li.description && li.quantity > 0),
-            status: 'DRAFT',
             issueDate,
             dueDate,
             total: grandTotal,
-            amountPaid: 0,
-            paymentRecords: [],
         };
 
-        onSaveInvoice(newInvoice);
+        if (invoiceToEdit) {
+            const updatedInvoice: Invoice = {
+                ...invoiceToEdit,
+                ...commonData,
+            };
+            onSave(updatedInvoice);
+        } else {
+            const newInvoiceData: Omit<Invoice, 'id' | 'invoiceNumber'> = {
+                ...commonData,
+                status: 'DRAFT',
+                amountPaid: 0,
+                paymentRecords: [],
+            };
+            onSave(newInvoiceData);
+        }
     };
 
     return (
         <form onSubmit={handleSubmit}>
             <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-4 md:p-6">
                 <div className="flex justify-between items-center mb-6 border-b border-slate-200 dark:border-slate-700 pb-4">
-                    <h2 className="text-xl font-bold">{t('invoiceEditor.newInvoice')}</h2>
+                    <h2 className="text-xl font-bold">{invoiceToEdit ? t('invoiceEditor.editInvoice', { number: invoiceToEdit.invoiceNumber }) : t('invoiceEditor.newInvoice')}</h2>
                     <div className="flex space-x-2">
                          <button type="button" onClick={onCancel} className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm hover:bg-slate-50 dark:hover:bg-slate-600">{t('common.cancel')}</button>
-                        <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-sky-600 border border-transparent rounded-md shadow-sm hover:bg-sky-700">{t('invoiceEditor.saveInvoice')}</button>
+                        <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-sky-600 border border-transparent rounded-md shadow-sm hover:bg-sky-700">{invoiceToEdit ? t('invoiceEditor.updateInvoice') : t('invoiceEditor.saveInvoice')}</button>
                     </div>
                 </div>
 

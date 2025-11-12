@@ -81,11 +81,17 @@
         "noInvoicesYet": "No invoices yet",
         "number": "Number",
         "client": "Client",
-        "status": "Status"
+        "status": "Status",
+        "selected": "{{count}} selected",
+        "markAsPaid": "Mark as Paid",
+        "deleteInvoicesTitle": "Delete {{count}} Invoices?",
+        "deleteInvoicesMessage": "Are you sure you want to permanently delete the selected invoices? This action cannot be undone."
     },
     "invoiceEditor": {
         "newInvoice": "New Invoice",
+        "editInvoice": "Edit Invoice #{{number}}",
         "saveInvoice": "Save Invoice",
+        "updateInvoice": "Update Invoice",
         "from": "From",
         "billTo": "Bill To",
         "selectClient": "Select a client...",
@@ -161,10 +167,13 @@
         "itemDeleted": "Item deleted successfully.",
         "profileNotSet": "Company profile is not set up.",
         "invoiceCreated": "Invoice #{{number}} created!",
+        "invoiceUpdated": "Invoice #{{number}} updated!",
         "paymentRecorded": "Payment recorded successfully!",
         "designGenerated": "Design generated successfully!",
         "designFailed": "Failed to generate design. The response was empty.",
-        "designError": "An error occurred while generating the design."
+        "designError": "An error occurred while generating the design.",
+        "invoicesDeleted": "{{count}} invoices deleted successfully.",
+        "invoicesMarkedAsPaid": "{{count}} invoices marked as paid."
     },
     "status": {
         "draft": "Draft",

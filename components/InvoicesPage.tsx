@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
 import { type Invoice, type InvoiceStatus, type CompanyProfile } from '../types';
-import { PlusIcon } from './icons';
+import { PlusIcon, TrashIcon, CheckCircleIcon } from './icons';
 import { type View } from '../App';
 import InvoiceDesignStudio from './InvoiceDesignStudio';
 import InvoiceDetailsModal from './InvoiceDetailsModal';
+import ConfirmationModal from './ConfirmationModal';
 import { useLanguage } from '../i18n/LanguageProvider';
 
 interface InvoicesPageProps {
     invoices: Invoice[];
     onNavigate: (view: View) => void;
     onUpdateInvoice: (invoiceId: string, updatedData: Partial<Invoice>) => void;
+    onDeleteInvoices: (invoiceIds: string[]) => void;
+    onBulkMarkAsPaid: (invoiceIds: string[]) => void;
+    onEditInvoice: (invoice: Invoice) => void;
     companyProfile: CompanyProfile;
 }
 
@@ -43,8 +47,18 @@ const StatusBadge: React.FC<{ status: InvoiceStatus }> = ({ status }) => {
     );
 };
 
-const InvoiceList: React.FC<{ invoices: Invoice[]; onInvoiceSelect: (invoice: Invoice) => void; }> = ({ invoices, onInvoiceSelect }) => {
+interface InvoiceListProps {
+    invoices: Invoice[];
+    onInvoiceSelect: (invoice: Invoice) => void;
+    selectedInvoices: string[];
+    onSelectAll: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    onSelectOne: (invoiceId: string) => void;
+}
+
+const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, onInvoiceSelect, selectedInvoices, onSelectAll, onSelectOne }) => {
     const { t } = useLanguage();
+    const isAllSelected = invoices.length > 0 && selectedInvoices.length === invoices.length;
+
      return (
         <>
         {invoices.length === 0 ? (
@@ -56,6 +70,17 @@ const InvoiceList: React.FC<{ invoices: Invoice[]; onInvoiceSelect: (invoice: In
                 <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
                     <thead className="bg-slate-50 dark:bg-slate-700/50">
                         <tr>
+                            <th scope="col" className="px-6 py-3">
+                                <input 
+                                    type="checkbox"
+                                    className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+                                    checked={isAllSelected}
+                                    ref={input => {
+                                        if (input) input.indeterminate = selectedInvoices.length > 0 && !isAllSelected;
+                                    }}
+                                    onChange={onSelectAll}
+                                />
+                            </th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('invoices.number')}</th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('invoices.client')}</th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('common.dueDate')}</th>
@@ -65,12 +90,20 @@ const InvoiceList: React.FC<{ invoices: Invoice[]; onInvoiceSelect: (invoice: In
                     </thead>
                     <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
                         {invoices.map(invoice => (
-                            <tr key={invoice.id} onClick={() => onInvoiceSelect(invoice)} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer">
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-sky-600 dark:text-sky-400">#{invoice.invoiceNumber}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-white">{invoice.client.name}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{formatDate(invoice.dueDate)}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm"><StatusBadge status={invoice.status} /></td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">{formatCurrency(invoice.total)}</td>
+                            <tr key={invoice.id} className={`${selectedInvoices.includes(invoice.id) ? 'bg-sky-50 dark:bg-sky-900/50' : ''} hover:bg-slate-50 dark:hover:bg-slate-700/50`}>
+                                <td className="px-6 py-4 whitespace-nowrap" onClick={e => e.stopPropagation()}>
+                                    <input
+                                        type="checkbox"
+                                        className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+                                        checked={selectedInvoices.includes(invoice.id)}
+                                        onChange={() => onSelectOne(invoice.id)}
+                                    />
+                                </td>
+                                <td onClick={() => onInvoiceSelect(invoice)} className="px-6 py-4 whitespace-nowrap text-sm font-medium text-sky-600 dark:text-sky-400 cursor-pointer">#{invoice.invoiceNumber}</td>
+                                <td onClick={() => onInvoiceSelect(invoice)} className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-white cursor-pointer">{invoice.client.name}</td>
+                                <td onClick={() => onInvoiceSelect(invoice)} className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400 cursor-pointer">{formatDate(invoice.dueDate)}</td>
+                                <td onClick={() => onInvoiceSelect(invoice)} className="px-6 py-4 whitespace-nowrap text-sm cursor-pointer"><StatusBadge status={invoice.status} /></td>
+                                <td onClick={() => onInvoiceSelect(invoice)} className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium cursor-pointer">{formatCurrency(invoice.total)}</td>
                             </tr>
                         ))}
                     </tbody>
@@ -82,16 +115,62 @@ const InvoiceList: React.FC<{ invoices: Invoice[]; onInvoiceSelect: (invoice: In
 }
 
 
-const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpdateInvoice, companyProfile }) => {
+const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpdateInvoice, onDeleteInvoices, onBulkMarkAsPaid, onEditInvoice, companyProfile }) => {
     const [activeTab, setActiveTab] = useState('list');
     const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+    const [selectedInvoices, setSelectedInvoices] = useState<string[]>([]);
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const { t } = useLanguage();
+
+    const handleSelectOne = (invoiceId: string) => {
+        setSelectedInvoices(prev =>
+            prev.includes(invoiceId)
+                ? prev.filter(id => id !== invoiceId)
+                : [...prev, invoiceId]
+        );
+    };
+
+    const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.checked) {
+            setSelectedInvoices(invoices.map(inv => inv.id));
+        } else {
+            setSelectedInvoices([]);
+        }
+    };
+
+    const handleConfirmDelete = () => {
+        onDeleteInvoices(selectedInvoices);
+        setSelectedInvoices([]);
+        setIsConfirmModalOpen(false);
+    };
+
+    const handleBulkPaid = () => {
+        onBulkMarkAsPaid(selectedInvoices);
+        setSelectedInvoices([]);
+    };
 
     const handleCloseModal = () => setSelectedInvoice(null);
 
+    const BulkActionsBar = () => (
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 mt-4 z-20 w-full max-w-fit animate-fade-in-down">
+            <div className="flex items-center space-x-2 bg-white dark:bg-slate-700 shadow-lg rounded-full px-3 py-2">
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-200 px-2">{t('invoices.selected', { count: selectedInvoices.length })}</span>
+                <button onClick={handleBulkPaid} className="inline-flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-600 px-3 py-1.5 text-sm font-medium text-slate-800 dark:text-slate-100 shadow-sm hover:bg-slate-200 dark:hover:bg-slate-500">
+                    <CheckCircleIcon className="mr-2 h-4 w-4 text-green-500" />
+                    {t('invoices.markAsPaid')}
+                </button>
+                <button onClick={() => setIsConfirmModalOpen(true)} className="inline-flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-600 px-3 py-1.5 text-sm font-medium text-slate-800 dark:text-slate-100 shadow-sm hover:bg-slate-200 dark:hover:bg-slate-500">
+                    <TrashIcon className="mr-2 h-4 w-4 text-red-500" />
+                    {t('common.delete')}
+                </button>
+            </div>
+        </div>
+    );
+
     return (
         <>
-            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg">
+            <div className="relative bg-white dark:bg-slate-800 rounded-lg shadow-lg">
+                {selectedInvoices.length > 0 && <BulkActionsBar />}
                 <div className="p-4 md:p-6 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                          <h2 className="text-xl font-bold">{t('header.invoices')}</h2>
@@ -114,7 +193,7 @@ const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpd
                 </div>
                 
                 <div className={activeTab === 'list' ? "p-0" : "p-4 md:p-6"}>
-                    {activeTab === 'list' && <InvoiceList invoices={invoices} onInvoiceSelect={setSelectedInvoice} />}
+                    {activeTab === 'list' && <InvoiceList invoices={invoices} onInvoiceSelect={setSelectedInvoice} selectedInvoices={selectedInvoices} onSelectAll={handleSelectAll} onSelectOne={handleSelectOne} />}
                     {activeTab === 'design' && <InvoiceDesignStudio companyProfile={companyProfile} />}
                 </div>
             </div>
@@ -124,8 +203,16 @@ const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpd
                     onClose={handleCloseModal}
                     onUpdateInvoice={onUpdateInvoice}
                     companyProfile={companyProfile}
+                    onEdit={onEditInvoice}
                 />
             )}
+            <ConfirmationModal
+                isOpen={isConfirmModalOpen}
+                onClose={() => setIsConfirmModalOpen(false)}
+                onConfirm={handleConfirmDelete}
+                title={t('invoices.deleteInvoicesTitle', { count: selectedInvoices.length })}
+                message={t('invoices.deleteInvoicesMessage')}
+            />
         </>
     );
 };

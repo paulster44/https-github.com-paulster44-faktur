@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { type Invoice, type Client, type Item, type CompanyProfile } from './types';
+import { type Invoice, type Client, type Item, type CompanyProfile, type InvoiceStatus } from './types';
 import { mockInvoices, mockClients, mockItems } from './services/geminiService';
 import Header from './components/Header';
 import HomePage from './components/HomePage';
@@ -20,6 +20,7 @@ const MainApp: React.FC = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
+  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const { t } = useLanguage();
 
@@ -125,37 +126,68 @@ const MainApp: React.FC = () => {
     toast.success(t('toasts.itemDeleted'));
   };
 
-  const addInvoice = (invoice: Omit<Invoice, 'id' | 'invoiceNumber'>) => {
-    if (!companyProfile) {
-        toast.error(t('toasts.profileNotSet'));
-        return;
-    }
-    
-    const newInvoiceNumber = `${companyProfile.invoiceNumberPrefix}${companyProfile.nextInvoiceNumber}`;
-    
-    const newInvoice: Invoice = { 
-        ...invoice, 
-        id: `inv-${Date.now()}`,
-        invoiceNumber: newInvoiceNumber,
-    };
-    
-    setInvoices(prevInvoices => [newInvoice, ...prevInvoices]);
-    
-    setCompanyProfile(prevProfile => {
-        if (!prevProfile) return null;
-        return {
-            ...prevProfile,
-            nextInvoiceNumber: prevProfile.nextInvoiceNumber + 1,
+  const saveOrUpdateInvoice = (invoiceData: Invoice | Omit<Invoice, 'id' | 'invoiceNumber'>) => {
+    if ('id' in invoiceData) {
+        // Update existing invoice
+        const updatedInvoice = invoiceData as Invoice;
+        setInvoices(prevInvoices => 
+            prevInvoices.map(inv => (inv.id === updatedInvoice.id ? updatedInvoice : inv))
+        );
+        toast.success(t('toasts.invoiceUpdated', { number: updatedInvoice.invoiceNumber }));
+    } else {
+        // Create new invoice
+        if (!companyProfile) {
+            toast.error(t('toasts.profileNotSet'));
+            return;
+        }
+        const newInvoiceNumber = `${companyProfile.invoiceNumberPrefix}${companyProfile.nextInvoiceNumber}`;
+        const newInvoice: Invoice = { 
+            ...(invoiceData as Omit<Invoice, 'id' | 'invoiceNumber'>), 
+            id: `inv-${Date.now()}`,
+            invoiceNumber: newInvoiceNumber,
         };
-    });
-
-    toast.success(t('toasts.invoiceCreated', { number: newInvoiceNumber }));
+        setInvoices(prevInvoices => [newInvoice, ...prevInvoices]);
+        setCompanyProfile(prevProfile => {
+            if (!prevProfile) return null;
+            return {
+                ...prevProfile,
+                nextInvoiceNumber: prevProfile.nextInvoiceNumber + 1,
+            };
+        });
+        toast.success(t('toasts.invoiceCreated', { number: newInvoiceNumber }));
+    }
     setCurrentView('invoices');
+    setEditingInvoice(null);
   };
   
-  const updateInvoice = (invoiceId: string, updatedInvoiceData: Partial<Invoice>) => {
+  const updateInvoicePayment = (invoiceId: string, updatedInvoiceData: Partial<Invoice>) => {
     setInvoices(prev => prev.map(inv => inv.id === invoiceId ? {...inv, ...updatedInvoiceData} : inv));
   }
+
+  const handleEditInvoice = (invoice: Invoice) => {
+    setEditingInvoice(invoice);
+    setCurrentView('create-invoice');
+  };
+
+  const deleteInvoices = (invoiceIds: string[]) => {
+    setInvoices(prevInvoices => prevInvoices.filter(invoice => !invoiceIds.includes(invoice.id)));
+    toast.success(t('toasts.invoicesDeleted', { count: invoiceIds.length }));
+  };
+
+  const bulkMarkAsPaid = (invoiceIds: string[]) => {
+    setInvoices(prevInvoices =>
+      prevInvoices.map(invoice =>
+        invoiceIds.includes(invoice.id) && invoice.status !== 'PAID'
+          ? {
+              ...invoice,
+              status: 'PAID' as InvoiceStatus,
+              amountPaid: invoice.total,
+            }
+          : invoice
+      )
+    );
+    toast.success(t('toasts.invoicesMarkedAsPaid', { count: invoiceIds.length }));
+  };
 
   const renderContent = () => {
     if (!isDataLoaded) {
@@ -170,13 +202,28 @@ const MainApp: React.FC = () => {
       case 'home':
         return <HomePage invoices={invoices} onNavigate={setCurrentView} />;
       case 'invoices':
-        return <InvoicesPage invoices={invoices} onNavigate={setCurrentView} onUpdateInvoice={updateInvoice} companyProfile={companyProfile} />;
+        return <InvoicesPage 
+            invoices={invoices} 
+            onNavigate={setCurrentView} 
+            onUpdateInvoice={updateInvoicePayment} 
+            companyProfile={companyProfile} 
+            onDeleteInvoices={deleteInvoices}
+            onBulkMarkAsPaid={bulkMarkAsPaid}
+            onEditInvoice={handleEditInvoice}
+        />;
       case 'clients':
         return <ClientsPage clients={clients} onAddClient={addClient} onUpdateClient={updateClient} onDeleteClient={deleteClient} />;
       case 'items':
         return <ItemsPage items={items} onAddItem={addItem} onUpdateItem={updateItem} onDeleteItem={deleteItem} />;
       case 'create-invoice':
-        return <InvoiceEditor clients={clients} items={items} onSaveInvoice={addInvoice} onCancel={() => setCurrentView('invoices')} companyProfile={companyProfile} />;
+        return <InvoiceEditor 
+            clients={clients} 
+            items={items} 
+            onSave={saveOrUpdateInvoice} 
+            onCancel={() => { setCurrentView('invoices'); setEditingInvoice(null); }} 
+            companyProfile={companyProfile} 
+            invoiceToEdit={editingInvoice}
+        />;
        case 'settings':
         return <SettingsPage companyProfile={companyProfile} onSave={handleSaveProfile} />;
       default:

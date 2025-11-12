@@ -81,11 +81,17 @@
         "noInvoicesYet": "Aún no hay facturas",
         "number": "Número",
         "client": "Cliente",
-        "status": "Estado"
+        "status": "Estado",
+        "selected": "{{count}} seleccionados",
+        "markAsPaid": "Marcar como pagada",
+        "deleteInvoicesTitle": "¿Eliminar {{count}} facturas?",
+        "deleteInvoicesMessage": "¿Está seguro de que desea eliminar permanentemente las facturas seleccionadas? Esta acción no se puede deshacer."
     },
     "invoiceEditor": {
         "newInvoice": "Nueva factura",
+        "editInvoice": "Editar factura #{{number}}",
         "saveInvoice": "Guardar factura",
+        "updateInvoice": "Actualizar factura",
         "from": "De",
         "billTo": "Facturar a",
         "selectClient": "Seleccione un cliente...",
@@ -161,10 +167,13 @@
         "itemDeleted": "Artículo eliminado con éxito.",
         "profileNotSet": "El perfil de la empresa no está configurado.",
         "invoiceCreated": "¡Factura #{{number}} creada!",
+        "invoiceUpdated": "¡Factura #{{number}} actualizada!",
         "paymentRecorded": "¡Pago registrado con éxito!",
         "designGenerated": "¡Diseño generado con éxito!",
         "designFailed": "Error al generar el diseño. La respuesta estaba vacía.",
-        "designError": "Ocurrió un error al generar el diseño."
+        "designError": "Ocurrió un error al generar el diseño.",
+        "invoicesDeleted": "{{count}} facturas eliminadas con éxito.",
+        "invoicesMarkedAsPaid": "{{count}} facturas marcadas como pagadas."
     },
     "status": {
         "draft": "Borrador",

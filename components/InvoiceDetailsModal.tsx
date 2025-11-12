@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { type Invoice, type PaymentRecord, type CompanyProfile, type InvoiceStatus } from '../types';
-import { XIcon, PlusIcon } from './icons';
+import { XIcon, PlusIcon, PencilIcon } from './icons';
 import { toast } from './Toaster';
 import { useLanguage } from '../i18n/LanguageProvider';
 
@@ -9,6 +9,7 @@ interface InvoiceDetailsModalProps {
     companyProfile: CompanyProfile;
     onClose: () => void;
     onUpdateInvoice: (invoiceId: string, updatedData: Partial<Invoice>) => void;
+    onEdit: (invoice: Invoice) => void;
 }
 
 const formatCurrency = (amount: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -16,7 +17,7 @@ const formatDate = (dateString: string) => new Date(dateString).toLocaleDateStri
 
 const today = new Date().toISOString().split('T')[0];
 
-const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ invoice, companyProfile, onClose, onUpdateInvoice }) => {
+const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ invoice, companyProfile, onClose, onUpdateInvoice, onEdit }) => {
     const [isPaymentFormVisible, setIsPaymentFormVisible] = useState(false);
     const [payment, setPayment] = useState<Omit<PaymentRecord, 'id'>>({
         amount: invoice.total - invoice.amountPaid,
@@ -58,7 +59,13 @@ const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ invoice, comp
         <div className="fixed inset-0 bg-black bg-opacity-60 z-40 flex justify-center items-start p-4 overflow-y-auto" onClick={onClose}>
             <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-4xl my-8" onClick={e => e.stopPropagation()}>
                 <div className="p-5 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
-                    <h3 className="text-xl font-semibold">{t('common.invoice')} #{invoice.invoiceNumber}</h3>
+                    <div className="flex items-center space-x-4">
+                        <h3 className="text-xl font-semibold">{t('common.invoice')} #{invoice.invoiceNumber}</h3>
+                         <button onClick={() => onEdit(invoice)} className="p-2 text-slate-500 hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400">
+                            <PencilIcon className="h-5 w-5" />
+                            <span className="sr-only">{t('common.edit')}</span>
+                        </button>
+                    </div>
                     <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700">
                         <XIcon className="h-6 w-6 text-slate-500" />
                     </button>
