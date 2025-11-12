@@ -13,9 +13,18 @@ export interface Client {
   name: string;
   email?: string;
   address?: Address;
+  contactName?: string;
+  notes?: string;
 }
 
-export interface LineItem {
+export interface Item {
+  id: string;
+  name: string;
+  description: string;
+  unitPrice: number;
+}
+
+export interface InvoiceLineItem {
   id: string;
   description: string;
   quantity: number;
@@ -26,7 +35,7 @@ export interface Invoice {
   id: string;
   invoiceNumber: string;
   client: Client;
-  lineItems: LineItem[];
+  lineItems: InvoiceLineItem[];
   status: InvoiceStatus;
   issueDate: string; // YYYY-MM-DD
   dueDate: string; // YYYY-MM-DD

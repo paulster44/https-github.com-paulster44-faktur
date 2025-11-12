@@ -1,4 +1,5 @@
-import { type Invoice, type Client, type LineItem, type Address } from '../types';
+import { GoogleGenAI, Type } from "@google/genai";
+import { type Invoice, type Client, type InvoiceLineItem, type Address, type Item } from '../types';
 
 const mockAddresses: Address[] = [
     { street: '123 Innovation Dr', city: 'Techville', state: 'CA', postalCode: '94043', country: 'USA' },
@@ -8,12 +9,40 @@ const mockAddresses: Address[] = [
 
 
 export const mockClients: Client[] = [
-  { id: 'client-1', name: 'Innovate LLC', email: 'contact@innovate.com', address: mockAddresses[0] },
-  { id: 'client-2', name: 'Solutions Co.', email: 'billing@solutions.co', address: mockAddresses[1] },
-  { id: 'client-3', name: 'Alpha Tech', email: 'accounts@alphatech.io', address: mockAddresses[2] },
+  { 
+    id: 'client-1', 
+    name: 'Innovate LLC', 
+    email: 'contact@innovate.com', 
+    address: mockAddresses[0],
+    contactName: 'Jane Doe',
+    notes: 'Primary contact for all billing inquiries. Prefers communication via email.'
+  },
+  { 
+    id: 'client-2', 
+    name: 'Solutions Co.', 
+    email: 'billing@solutions.co', 
+    address: mockAddresses[1],
+    contactName: 'John Smith',
+    notes: 'Met at the 2024 Tech Conference. Interested in our new enterprise package.'
+  },
+  { 
+    id: 'client-3', 
+    name: 'Alpha Tech', 
+    email: 'accounts@alphatech.io', 
+    address: mockAddresses[2],
+    contactName: 'Alex Ray',
+    notes: 'Long-term client, always pays on time.'
+  },
 ];
 
-const createLineItems = (count: number): LineItem[] => {
+export const mockItems: Item[] = [
+    { id: 'item-1', name: 'Web Design', description: 'Responsive website design and development.', unitPrice: 2500 },
+    { id: 'item-2', name: 'Consulting', description: 'Strategic business consulting services.', unitPrice: 150 },
+    { id: 'item-3', name: 'SEO Package', description: 'Monthly SEO optimization and reporting.', unitPrice: 800 },
+    { id: 'item-4', name: 'Content Writing', description: 'Per 1000 words of content.', unitPrice: 200 },
+];
+
+const createLineItems = (count: number): InvoiceLineItem[] => {
     return Array.from({length: count}, (_, i) => ({
         id: `li-${Math.random()}`,
         description: `Service Item ${i + 1}`,
@@ -22,7 +51,7 @@ const createLineItems = (count: number): LineItem[] => {
     }));
 }
 
-const calculateTotal = (items: LineItem[]): number => items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+const calculateTotal = (items: InvoiceLineItem[]): number => items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
 
 export const mockInvoices: Invoice[] = [
   {
@@ -89,3 +118,62 @@ mockInvoices.forEach(inv => {
         inv.amountPaid = inv.total;
     }
 });
+
+
+// --- AI Service ---
+let ai: GoogleGenAI | null = null;
+
+async function getAi() {
+  if (!ai) {
+    ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+  }
+  return ai;
+}
+
+export async function generateInvoiceStyle(prompt: string): Promise<{css: string} | null> {
+    const ai = await getAi();
+    const model = 'gemini-2.5-flash';
+
+    const systemInstruction = `You are an expert CSS designer. Your task is to generate a complete CSS stylesheet for an invoice based on the user's prompt. The CSS should be modern, clean, and directly applicable to the provided HTML structure. The user will give you a theme or style description. You MUST return only a JSON object with a single key "css" containing the full CSS code as a string.
+
+    Target this HTML structure:
+    <div class="invoice-preview">
+        <header class="invoice-header">...</header>
+        <section class="company-details">...</section>
+        <section class="client-details">...</section>
+        <table class="invoice-items">
+            <thead>...</thead>
+            <tbody>...</tbody>
+        </table>
+        <footer class="invoice-footer">...</footer>
+    </div>
+    
+    Make sure to style all elements including headers, tables (th, tr, td), and footers to create a cohesive design. Use professional color palettes and readable fonts. Do not include any markdown formatting like \`\`\`css in your response.`;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: model,
+            contents: prompt,
+            config: {
+                systemInstruction,
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        css: {
+                            type: Type.STRING,
+                            description: 'The complete CSS stylesheet for the invoice.',
+                        },
+                    },
+                    required: ['css'],
+                },
+            },
+        });
+        
+        const jsonText = response.text.trim();
+        return JSON.parse(jsonText);
+    } catch (error) {
+        console.error("Error generating invoice style:", error);
+        return null;
+    }
+}

@@ -12,7 +12,9 @@ interface ClientsPageProps {
 const emptyClient: Omit<Client, 'id'> = {
     name: '',
     email: '',
-    address: { street: '', city: '', state: '', postalCode: '', country: '' }
+    address: { street: '', city: '', state: '', postalCode: '', country: '' },
+    contactName: '',
+    notes: '',
 };
 
 const ClientFormModal: React.FC<{
@@ -29,7 +31,7 @@ const ClientFormModal: React.FC<{
 
     if (!isOpen) return null;
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         if (name.startsWith('address.')) {
             const addressField = name.split('.')[1];
@@ -60,13 +62,23 @@ const ClientFormModal: React.FC<{
                         <h3 className="text-xl font-semibold">{clientToEdit ? 'Edit Client' : 'Add New Client'}</h3>
                     </div>
                     <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-                        <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-slate-700 dark:text-slate-300">Client Name</label>
-                            <input type="text" name="name" id="name" value={client.name} onChange={handleChange} required className="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm bg-white dark:bg-slate-700" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label htmlFor="name" className="block text-sm font-medium text-slate-700 dark:text-slate-300">Client Name</label>
+                                <input type="text" name="name" id="name" value={client.name} onChange={handleChange} required className="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm bg-white dark:bg-slate-700" />
+                            </div>
+                            <div>
+                                <label htmlFor="contactName" className="block text-sm font-medium text-slate-700 dark:text-slate-300">Contact Name</label>
+                                <input type="text" name="contactName" id="contactName" value={client.contactName} onChange={handleChange} className="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm bg-white dark:bg-slate-700" />
+                            </div>
                         </div>
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">Email</label>
                             <input type="email" name="email" id="email" value={client.email} onChange={handleChange} className="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm bg-white dark:bg-slate-700" />
+                        </div>
+                         <div>
+                            <label htmlFor="notes" className="block text-sm font-medium text-slate-700 dark:text-slate-300">Notes</label>
+                            <textarea name="notes" id="notes" value={client.notes} onChange={handleChange} rows={3} className="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm bg-white dark:bg-slate-700" />
                         </div>
                         <div className="pt-2">
                              <h4 className="text-md font-semibold text-slate-800 dark:text-slate-200 mb-2">Address</h4>
@@ -157,7 +169,10 @@ const ClientsPage: React.FC<ClientsPageProps> = ({ clients, onAddClient, onUpdat
                         <li key={client.id} className="p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700/50">
                             <div>
                                 <p className="text-sm font-medium text-slate-900 dark:text-white">{client.name}</p>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">{client.email}</p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                    {client.contactName && <span className="font-medium">{client.contactName} &bull; </span>}
+                                    {client.email}
+                                </p>
                             </div>
                             <div className="flex items-center space-x-2">
                                 <button onClick={() => handleOpenModalForEdit(client)} className="p-2 text-slate-500 hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400">
