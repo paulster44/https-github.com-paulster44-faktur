@@ -1,0 +1,5 @@
+{
+  "name": "Faktur App: Invoicing",
+  "description": "A local-first invoicing application for small businesses and freelancers. Create and manage invoices, clients, and items with ease. This is a clean-room implementation inspired by modern invoicing tools.",
+  "requestFramePermissions": []
+}
