@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI } from '@google/genai';
 import { type Invoice, type Client, type InvoiceLineItem, type Address, type Item, type PaymentRecord } from '../types';
 
 const mockAddresses: Address[] = [
@@ -98,4 +98,46 @@ export const mockInvoices: Invoice[] = [
     status: 'DRAFT',
     issueDate: '2024-07-28',
     dueDate: '2024-08-27',
-    total: 800.0
+    total: 800.00,
+    amountPaid: 0,
+    paymentRecords: [],
+  },
+];
+
+// FIX: Implement the missing 'generateInvoiceStyle' function to generate CSS using the Gemini API.
+const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
+
+export const generateInvoiceStyle = async (prompt: string, includeBackground: boolean): Promise<{css: string}> => {
+    const model = 'gemini-2.5-pro';
+
+    const fullPrompt = `
+You are an expert CSS designer. Generate CSS code for a modern invoice template based on the following user request.
+The CSS should only target classes within the '.invoice-preview' parent class.
+Do not include any selectors outside of '.invoice-preview'.
+The generated CSS should be clean, modern, and readable.
+Only output the raw CSS code, without any explanation, comments, or markdown formatting like \`\`\`css ... \`\`\`.
+
+User request: "${prompt}"
+
+${includeBackground ? "Include a subtle, professional background for the invoice body." : "Do not add any background images or complex background gradients to the main invoice body."}
+`;
+    try {
+        const response = await ai.models.generateContent({
+            model: model,
+            contents: fullPrompt,
+        });
+
+        const css = response.text.trim();
+        
+        if (css && css.includes('{') && css.includes('}')) {
+             return { css };
+        } else {
+            console.error("Gemini did not return valid CSS:", css);
+            return { css: '' };
+        }
+
+    } catch (error) {
+        console.error("Error generating invoice style with Gemini:", error);
+        throw new Error("Failed to generate CSS from Gemini.");
+    }
+}

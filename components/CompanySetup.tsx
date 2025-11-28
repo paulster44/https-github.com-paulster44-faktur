@@ -23,6 +23,8 @@ const emptyProfile: CompanyProfile = {
     nextInvoiceNumber: 1,
     taxType: 'GST/HST Number',
     taxNumber: '',
+    // FIX: Add missing required 'template' property to satisfy CompanyProfile type.
+    template: 'modern',
 };
 
 const CompanySetup: React.FC<CompanySetupProps> = ({ onSave }) => {
