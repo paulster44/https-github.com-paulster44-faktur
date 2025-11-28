@@ -57,10 +57,12 @@ const SendInvoiceModal: React.FC<SendInvoiceModalProps> = ({ invoice, companyPro
     };
 
     return (
-        <div className="fixed inset-0 bg-slate-900 bg-opacity-75 z-50 flex justify-center items-center p-4">
-            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col md:flex-row overflow-hidden">
+        <div className="fixed inset-0 bg-slate-900 bg-opacity-75 z-50 flex justify-center items-start md:items-center p-4 overflow-y-auto">
+            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-2xl w-full max-w-6xl flex flex-col md:flex-row my-8 md:my-0
+                h-auto md:h-[90vh] md:overflow-hidden relative
+            ">
                 {/* Left Side: Email Form */}
-                <div className="w-full md:w-1/3 p-6 flex flex-col border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 z-10">
+                <div className="w-full md:w-1/3 p-6 flex flex-col border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 z-10 md:h-full">
                     <div className="mb-6">
                         <div className="h-12 w-12 bg-sky-100 dark:bg-sky-900/50 rounded-full flex items-center justify-center mb-4">
                             <DocumentTextIcon className="h-6 w-6 text-sky-600 dark:text-sky-400" />
@@ -71,7 +73,7 @@ const SendInvoiceModal: React.FC<SendInvoiceModalProps> = ({ invoice, companyPro
                         <p className="text-slate-500 dark:text-slate-400 mt-1">{t('sendInvoice.description')}</p>
                     </div>
 
-                    <div className="space-y-4 flex-grow overflow-y-auto pr-2">
+                    <div className="space-y-4 md:flex-grow md:overflow-y-auto pr-2">
                         <div>
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('sendInvoice.to')}</label>
                             <input 
@@ -118,7 +120,7 @@ const SendInvoiceModal: React.FC<SendInvoiceModalProps> = ({ invoice, companyPro
                 </div>
 
                 {/* Right Side: Invoice Preview */}
-                <div className="w-full md:w-2/3 bg-slate-100 dark:bg-slate-900 p-8 overflow-y-auto flex justify-center">
+                <div className="w-full md:w-2/3 bg-slate-100 dark:bg-slate-900 p-8 flex justify-center md:h-full md:overflow-y-auto">
                     <div className="w-full max-w-3xl transform scale-90 origin-top">
                         <div className="bg-white rounded-lg shadow-lg pointer-events-none select-none">
                              <InvoicePreview invoice={invoice} companyProfile={companyProfile} />

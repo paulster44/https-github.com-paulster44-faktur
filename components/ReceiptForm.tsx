@@ -68,15 +68,17 @@ const ReceiptForm: React.FC<ReceiptFormProps> = ({ initialData, onSave, onCancel
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-center overflow-y-auto">
-            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-2xl m-4 flex flex-col md:flex-row overflow-hidden max-h-[90vh]">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-start md:items-center p-4 overflow-y-auto">
+            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-2xl my-8 md:my-0 flex flex-col md:flex-row 
+                md:overflow-hidden md:max-h-[90vh] h-auto
+            ">
                  {expense.receiptImage && (
                     <div className="w-full md:w-1/3 bg-slate-100 dark:bg-slate-900 p-4 flex items-center justify-center border-r border-slate-200 dark:border-slate-700">
-                        <img src={expense.receiptImage} alt="Receipt" className="max-w-full max-h-[50vh] object-contain rounded shadow-sm" />
+                        <img src={expense.receiptImage} alt="Receipt" className="max-w-full md:max-h-[50vh] object-contain rounded shadow-sm" />
                     </div>
                 )}
                 
-                <div className={`w-full ${expense.receiptImage ? 'md:w-2/3' : ''} p-6 overflow-y-auto`}>
+                <div className={`w-full ${expense.receiptImage ? 'md:w-2/3' : ''} p-6 md:overflow-y-auto`}>
                     <h3 className="text-xl font-bold mb-6 text-slate-900 dark:text-white">{initialData.id ? t('expenses.editExpense') : t('expenses.newExpense')}</h3>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
