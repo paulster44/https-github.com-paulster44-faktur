@@ -23,6 +23,7 @@
         "country": "País",
         "cancel": "Cancelar",
         "save": "Guardar",
+        "add": "Añadir",
         "edit": "Editar",
         "delete": "Eliminar",
         "close": "Cerrar",
@@ -42,6 +43,7 @@
         "total": "Total",
         "subtotal": "Subtotal",
         "tax": "Impuesto",
+        "totalTax": "Total Impuestos",
         "totalDue": "Total a pagar",
         "date": "Fecha"
     },
@@ -74,7 +76,9 @@
         "scanError": "Error al analizar el recibo. Inténtelo de nuevo o introdúzcalo manualmente.",
         "uploadError": "Error al procesar el archivo de imagen.",
         "deleteConfirm": "¿Está seguro de que desea eliminar este gasto?",
-        "totalExpenses": "Gastos totales"
+        "totalExpenses": "Gastos totales",
+        "taxBreakdown": "Desglose de impuestos",
+        "noTaxDetails": "No hay detalles de impuestos."
     },
     "home": {
         "outstanding": "Pendiente",
@@ -175,7 +179,10 @@
         "noLogo": "Sin logotipo",
         "chooseLogo": "Elegir foto de perfil",
         "nextNumber": "Número siguiente",
-        "saveChanges": "Guardar cambios"
+        "saveChanges": "Guardar cambios",
+        "dataManagement": "Gestión de datos",
+        "backupDescription": "Descargue una copia de seguridad completa de sus facturas, clientes, artículos y configuración.",
+        "backupData": "Copia de seguridad (JSON)"
     },
     "payments": {
         "balance Due": "Saldo pendiente",
@@ -214,8 +221,8 @@
         "paymentRecorded": "¡Pago registrado con éxito!",
         "invoicesDeleted": "{{count}} facturas eliminadas con éxito.",
         "invoicesMarkedAsPaid": "{{count}} facturas marcadas como pagadas.",
-        "exporting": "Generando PDF...",
-        "exportFailed": "Error al exportar a PDF."
+        "exporting": "Generando archivo...",
+        "exportFailed": "Error al exportar."
     },
     "status": {
         "draft": "Borrador",

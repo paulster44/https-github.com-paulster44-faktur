@@ -157,17 +157,20 @@ export const analyzeReceipt = async (base64Image: string): Promise<Partial<Expen
                         }
                     },
                     {
-                        text: `You are an expert OCR and receipt analysis AI. Analyze this receipt image and extract the following details into a JSON object. 
+                        text: `You are an expert OCR and receipt analysis AI. Analyze this receipt image and extract the data into JSON.
                         
-                        CRITICAL RULES:
+                        CRITICAL EXTRACTION RULES:
                         1. **Merchant**: Identify the main store or merchant name clearly.
-                        2. **Date**: Extract the date. Convert it strictly to YYYY-MM-DD format. If the year is not explicitly visible but the month/day implies a recent transaction, assume the current year 2024/2025.
-                        3. **Amount**: Find the GRAND TOTAL / FINAL TOTAL. Do not use subtotals.
-                        4. **Tax**: meticulously search for keywords like "Tax", "VAT", "GST", "HST", "MwSt". Sum up all tax lines if multiple exist. If the receipt says "Tax Included", try to find the breakdown. If absolutely no tax amount is listed, return 0.
-                        5. **Category**: Categorize into one of: Meals, Transport, Supplies, Utilities, Software, Rent, Other.
-                        6. **Description**: A short, concise summary of the main items bought.
+                        2. **Date**: Extract the date (YYYY-MM-DD). If year is missing, assume 2024/2025.
+                        3. **Amount**: Find the GRAND TOTAL.
+                        4. **Taxes**: 
+                           - Look for ALL individual tax lines (e.g., "Tax", "VAT", "GST", "HST", "City Tax").
+                           - Extract each tax name and its specific amount.
+                           - Also calculate the 'tax' field as the SUM of these amounts.
+                        5. **Category**: Choose from: Meals, Transport, Supplies, Utilities, Software, Rent, Other.
+                        6. **Description**: Short summary of items.
                         
-                        Return only valid JSON.`
+                        Return JSON.`
                     }
                 ]
             },
@@ -179,7 +182,17 @@ export const analyzeReceipt = async (base64Image: string): Promise<Partial<Expen
                         merchant: { type: Type.STRING },
                         date: { type: Type.STRING },
                         amount: { type: Type.NUMBER },
-                        tax: { type: Type.NUMBER },
+                        tax: { type: Type.NUMBER, description: "Sum of all tax amounts" },
+                        taxDetails: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    name: { type: Type.STRING },
+                                    amount: { type: Type.NUMBER }
+                                }
+                            }
+                        },
                         category: { type: Type.STRING },
                         description: { type: Type.STRING },
                     },

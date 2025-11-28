@@ -1,13 +1,14 @@
 
 import React, { useState } from 'react';
 import { type Expense } from '../types';
-import { PlusIcon, CameraIcon, TrashIcon, PencilIcon, ReceiptIcon } from './icons';
+import { PlusIcon, CameraIcon, TrashIcon, PencilIcon, ReceiptIcon, ArrowDownTrayIcon } from './icons';
 import ReceiptUploader from './ReceiptUploader';
 import ReceiptForm from './ReceiptForm';
 import ReceiptProcessor from './ReceiptProcessor';
 import { analyzeReceipt } from '../services/geminiService';
 import { toast } from './Toaster';
 import { useLanguage } from '../i18n/LanguageProvider';
+import { exportToCSV } from '../utils/exportHelpers';
 
 interface ReceiptListProps {
     expenses: Expense[];
@@ -77,6 +78,38 @@ const ReceiptList: React.FC<ReceiptListProps> = ({ expenses, onAddExpense, onUpd
         setViewState('form');
     }
 
+    const handleExportCSV = () => {
+        const headers = ['Date', 'Merchant', 'Category', 'Amount', 'Tax', 'Description'];
+        const rows = expenses.map(e => [
+            e.date, 
+            e.merchant, 
+            e.category, 
+            e.amount, 
+            e.tax || 0, 
+            e.description || ''
+        ]);
+        exportToCSV('expenses.csv', headers, rows);
+    };
+
+    const handleExportPDF = async () => {
+        const element = document.getElementById('expense-table');
+        if (!element || !window.html2canvas || !window.jspdf) {
+            toast.error(t('toasts.exportFailed'));
+            return;
+        }
+        toast.success(t('toasts.exporting'));
+        try {
+            const canvas = await window.html2canvas(element, { scale: 1 });
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new window.jspdf.jsPDF({ orientation: 'l', unit: 'px', format: [canvas.width, canvas.height] });
+            pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+            pdf.save('expenses-report.pdf');
+        } catch (e) {
+            console.error(e);
+            toast.error(t('toasts.exportFailed'));
+        }
+    };
+
     const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
 
     return (
@@ -84,9 +117,17 @@ const ReceiptList: React.FC<ReceiptListProps> = ({ expenses, onAddExpense, onUpd
             {viewState === 'list' && (
                 <>
                     <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg">
-                        <div className="p-4 md:p-6 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                        <div className="p-4 md:p-6 border-b border-slate-200 dark:border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4">
                             <h2 className="text-xl font-bold">{t('expenses.title')}</h2>
-                            <div className="flex space-x-2">
+                            <div className="flex flex-wrap gap-2">
+                                <button onClick={handleExportCSV} className="inline-flex items-center px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600">
+                                    <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
+                                    CSV
+                                </button>
+                                <button onClick={handleExportPDF} className="inline-flex items-center px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600">
+                                    <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
+                                    PDF
+                                </button>
                                 <button
                                     onClick={handleManualAdd}
                                     className="inline-flex items-center justify-center rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-600"
@@ -111,14 +152,15 @@ const ReceiptList: React.FC<ReceiptListProps> = ({ expenses, onAddExpense, onUpd
                                 <p className="mt-1 text-sm text-slate-500">{t('expenses.noExpensesMsg')}</p>
                             </div>
                         ) : (
-                             <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+                             <div className="overflow-x-auto" id="expense-table">
+                                <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700 bg-white dark:bg-slate-800">
                                     <thead className="bg-slate-50 dark:bg-slate-700/50">
                                         <tr>
                                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('common.date')}</th>
                                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('expenses.merchant')}</th>
                                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('expenses.category')}</th>
                                             <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('common.amount')}</th>
+                                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('common.tax')}</th>
                                             <th scope="col" className="relative px-6 py-3">
                                                 <span className="sr-only">{t('common.edit')}</span>
                                             </th>
@@ -134,6 +176,14 @@ const ReceiptList: React.FC<ReceiptListProps> = ({ expenses, onAddExpense, onUpd
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{expense.category}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-slate-900 dark:text-white">${expense.amount.toFixed(2)}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-slate-500 dark:text-slate-400">
+                                                    ${(expense.tax || 0).toFixed(2)}
+                                                    {expense.taxDetails && expense.taxDetails.length > 0 && (
+                                                        <div className="text-xs text-slate-400">
+                                                            {expense.taxDetails.map(d => d.name).join(', ')}
+                                                        </div>
+                                                    )}
+                                                </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                     <button onClick={() => handleEdit(expense)} className="text-sky-600 hover:text-sky-900 dark:text-sky-400 dark:hover:text-sky-300 mr-3">
                                                         <PencilIcon className="h-4 w-4" />

@@ -79,12 +79,18 @@ export interface Invoice {
   paymentRecords: PaymentRecord[];
 }
 
+export interface TaxDetail {
+    name: string;
+    amount: number;
+}
+
 export interface Expense {
     id: string;
     merchant: string;
     date: string; // YYYY-MM-DD
     amount: number;
-    tax?: number; // Tax amount
+    tax?: number; // Total Tax amount
+    taxDetails?: TaxDetail[]; // Breakdown of taxes
     category: string;
     description?: string;
     receiptImage?: string; // base64

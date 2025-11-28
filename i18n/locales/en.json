@@ -23,6 +23,7 @@
         "country": "Country",
         "cancel": "Cancel",
         "save": "Save",
+        "add": "Add",
         "edit": "Edit",
         "delete": "Delete",
         "close": "Close",
@@ -42,6 +43,7 @@
         "total": "Total",
         "subtotal": "Subtotal",
         "tax": "Tax",
+        "totalTax": "Total Tax",
         "totalDue": "Total Due",
         "date": "Date"
     },
@@ -110,7 +112,9 @@
         "scanError": "Failed to analyze receipt. Please try again or enter manually.",
         "uploadError": "Failed to process image file.",
         "deleteConfirm": "Are you sure you want to delete this expense?",
-        "totalExpenses": "Total Expenses"
+        "totalExpenses": "Total Expenses",
+        "taxBreakdown": "Tax Breakdown",
+        "noTaxDetails": "No tax details available."
     },
     "invoices": {
         "newInvoice": "New Invoice",
@@ -175,7 +179,10 @@
         "noLogo": "No Logo",
         "chooseLogo": "Choose profile photo",
         "nextNumber": "Next Number",
-        "saveChanges": "Save Changes"
+        "saveChanges": "Save Changes",
+        "dataManagement": "Data Management",
+        "backupDescription": "Download a full backup of your invoices, clients, items, and settings.",
+        "backupData": "Backup Data (JSON)"
     },
     "payments": {
         "balanceDue": "Balance Due",
@@ -214,8 +221,8 @@
         "paymentRecorded": "Payment recorded successfully!",
         "invoicesDeleted": "{{count}} invoices deleted successfully.",
         "invoicesMarkedAsPaid": "{{count}} invoices marked as paid.",
-        "exporting": "Generating PDF...",
-        "exportFailed": "Failed to export PDF."
+        "exporting": "Generating file...",
+        "exportFailed": "Failed to export file."
     },
     "status": {
         "draft": "Draft",

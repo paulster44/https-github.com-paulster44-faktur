@@ -1,6 +1,10 @@
+
 import React, { useState, useMemo } from 'react';
 import { type Invoice, type Client } from '../types';
 import { useLanguage } from '../i18n/LanguageProvider';
+import { ArrowDownTrayIcon } from './icons';
+import { exportToCSV } from '../utils/exportHelpers';
+import { toast } from './Toaster';
 
 interface ReportsPageProps {
     invoices: Invoice[];
@@ -70,10 +74,35 @@ const ReportsPage: React.FC<ReportsPageProps> = ({ invoices, clients }) => {
 
     }, [filteredInvoices, clients]);
 
+    const handleExportCSV = () => {
+        const headers = ['Client Name', 'Invoices Count', 'Total Billed'];
+        const rows = revenueByClient.map(c => [c.name, c.invoiceCount, c.totalBilled]);
+        exportToCSV('revenue_by_client.csv', headers, rows);
+    };
+
+    const handleExportPDF = async () => {
+        const element = document.getElementById('report-container');
+        if (!element || !window.html2canvas || !window.jspdf) {
+            toast.error(t('toasts.exportFailed'));
+            return;
+        }
+        toast.success(t('toasts.exporting'));
+        try {
+            const canvas = await window.html2canvas(element, { scale: 1 });
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new window.jspdf.jsPDF({ orientation: 'p', unit: 'px', format: [canvas.width, canvas.height] });
+            pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+            pdf.save('financial-report.pdf');
+        } catch (e) {
+            console.error(e);
+            toast.error(t('toasts.exportFailed'));
+        }
+    };
+
     return (
-        <div className="space-y-6">
+        <div className="space-y-6" id="report-container">
              <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg">
-                <div className="p-4 md:p-6 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                <div className="p-4 md:p-6 border-b border-slate-200 dark:border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4">
                     <div>
                         <h2 className="text-xl font-bold">{t('reports.title')}</h2>
                         <p className="text-sm text-slate-500 dark:text-slate-400">{t('reports.description')}</p>
@@ -91,6 +120,12 @@ const ReportsPage: React.FC<ReportsPageProps> = ({ invoices, clients }) => {
                             <option value="90d">Last 90 days</option>
                             <option value="365d">Last 365 days</option>
                         </select>
+                        <button onClick={handleExportCSV} className="p-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300">
+                             <ArrowDownTrayIcon className="h-4 w-4" />
+                        </button>
+                        <button onClick={handleExportPDF} className="p-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300">
+                             <ArrowDownTrayIcon className="h-4 w-4" />
+                        </button>
                      </div>
                 </div>
             </div>

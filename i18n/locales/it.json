@@ -23,6 +23,7 @@
         "country": "Paese",
         "cancel": "Annulla",
         "save": "Salva",
+        "add": "Aggiungi",
         "edit": "Modifica",
         "delete": "Elimina",
         "close": "Chiudi",
@@ -42,6 +43,7 @@
         "total": "Totale",
         "subtotal": "Subtotale",
         "tax": "Imposta",
+        "totalTax": "Imposta totale",
         "totalDue": "Totale dovuto",
         "date": "Data"
     },
@@ -74,7 +76,9 @@
         "scanError": "Impossibile analizzare la ricevuta. Riprova o inserisci manualmente.",
         "uploadError": "Impossibile elaborare il file immagine.",
         "deleteConfirm": "Sei sicuro di voler eliminare questa spesa?",
-        "totalExpenses": "Spese totali"
+        "totalExpenses": "Spese totali",
+        "taxBreakdown": "Dettaglio imposte",
+        "noTaxDetails": "Nessun dettaglio fiscale."
     },
     "home": {
         "outstanding": "In sospeso",
@@ -175,7 +179,10 @@
         "noLogo": "Nessun logo",
         "chooseLogo": "Scegli la foto del profilo",
         "nextNumber": "Numero successivo",
-        "saveChanges": "Salva modifiche"
+        "saveChanges": "Salva modifiche",
+        "dataManagement": "Gestione dati",
+        "backupDescription": "Scarica un backup completo delle tue fatture, clienti, articoli e impostazioni.",
+        "backupData": "Backup Dati (JSON)"
     },
     "payments": {
         "balanceDue": "Saldo dovuto",
@@ -214,8 +221,8 @@
         "paymentRecorded": "Pagamento registrato con successo!",
         "invoicesDeleted": "{{count}} fatture eliminate con successo.",
         "invoicesMarkedAsPaid": "{{count}} fatture contrassegnate come pagate.",
-        "exporting": "Generazione PDF in corso...",
-        "exportFailed": "Esportazione PDF non riuscita."
+        "exporting": "Generazione file...",
+        "exportFailed": "Esportazione non riuscita."
     },
     "status": {
         "draft": "Bozza",

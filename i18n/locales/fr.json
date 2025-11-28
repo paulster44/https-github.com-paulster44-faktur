@@ -23,6 +23,7 @@
         "country": "Pays",
         "cancel": "Annuler",
         "save": "Enregistrer",
+        "add": "Ajouter",
         "edit": "Modifier",
         "delete": "Supprimer",
         "close": "Fermer",
@@ -42,6 +43,7 @@
         "total": "Total",
         "subtotal": "Sous-total",
         "tax": "Taxe",
+        "totalTax": "Taxe totale",
         "totalDue": "Total dû",
         "date": "Date"
     },
@@ -74,7 +76,9 @@
         "scanError": "Échec de l'analyse du reçu. Veuillez réessayer ou saisir manuellement.",
         "uploadError": "Échec du traitement du fichier image.",
         "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette dépense ?",
-        "totalExpenses": "Total des dépenses"
+        "totalExpenses": "Total des dépenses",
+        "taxBreakdown": "Détail des taxes",
+        "noTaxDetails": "Aucun détail de taxe disponible."
     },
     "home": {
         "outstanding": "Impayé",
@@ -175,7 +179,10 @@
         "noLogo": "Pas de logo",
         "chooseLogo": "Choisir une photo de profil",
         "nextNumber": "Numéro suivant",
-        "saveChanges": "Enregistrer les modifications"
+        "saveChanges": "Enregistrer les modifications",
+        "dataManagement": "Gestion des données",
+        "backupDescription": "Téléchargez une sauvegarde complète de vos factures, clients, articles et paramètres.",
+        "backupData": "Sauvegarder les données (JSON)"
     },
     "payments": {
         "balanceDue": "Solde dû",
@@ -214,8 +221,8 @@
         "paymentRecorded": "Paiement enregistré avec succès !",
         "invoicesDeleted": "{{count}} factures supprimées avec succès.",
         "invoicesMarkedAsPaid": "{{count}} factures marquées comme payées.",
-        "exporting": "Génération du PDF...",
-        "exportFailed": "Échec de l'exportation en PDF."
+        "exporting": "Génération du fichier...",
+        "exportFailed": "Échec de l'exportation."
     },
     "status": {
         "draft": "Brouillon",
