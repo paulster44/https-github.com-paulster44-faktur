@@ -1,5 +1,6 @@
-import { GoogleGenAI } from '@google/genai';
-import { type Invoice, type Client, type InvoiceLineItem, type Address, type Item, type PaymentRecord } from '../types';
+
+import { GoogleGenAI, Type } from '@google/genai';
+import { type Invoice, type Client, type InvoiceLineItem, type Address, type Item, type PaymentRecord, type Expense } from '../types';
 
 const mockAddresses: Address[] = [
     { street: '123 Innovation Dr', city: 'Techville', state: 'CA', postalCode: '94043', country: 'USA' },
@@ -104,11 +105,10 @@ export const mockInvoices: Invoice[] = [
   },
 ];
 
-// FIX: Implement the missing 'generateInvoiceStyle' function to generate CSS using the Gemini API.
 const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
 
 export const generateInvoiceStyle = async (prompt: string, includeBackground: boolean): Promise<{css: string}> => {
-    const model = 'gemini-2.5-pro';
+    const model = 'gemini-2.5-flash';
 
     const fullPrompt = `
 You are an expert CSS designer. Generate CSS code for a modern invoice template based on the following user request.
@@ -139,5 +139,60 @@ ${includeBackground ? "Include a subtle, professional background for the invoice
     } catch (error) {
         console.error("Error generating invoice style with Gemini:", error);
         throw new Error("Failed to generate CSS from Gemini.");
+    }
+}
+
+export const analyzeReceipt = async (base64Image: string): Promise<Partial<Expense>> => {
+    const model = 'gemini-2.5-flash';
+
+    try {
+        const response = await ai.models.generateContent({
+            model: model,
+            contents: {
+                parts: [
+                    {
+                        inlineData: {
+                            mimeType: 'image/jpeg',
+                            data: base64Image
+                        }
+                    },
+                    {
+                        text: `You are an expert OCR and receipt analysis AI. Analyze this receipt image and extract the following details into a JSON object. 
+                        
+                        CRITICAL RULES:
+                        1. **Merchant**: Identify the main store or merchant name clearly.
+                        2. **Date**: Extract the date. Convert it strictly to YYYY-MM-DD format. If the year is not explicitly visible but the month/day implies a recent transaction, assume the current year 2024/2025.
+                        3. **Amount**: Find the GRAND TOTAL / FINAL TOTAL. Do not use subtotals.
+                        4. **Tax**: meticulously search for keywords like "Tax", "VAT", "GST", "HST", "MwSt". Sum up all tax lines if multiple exist. If the receipt says "Tax Included", try to find the breakdown. If absolutely no tax amount is listed, return 0.
+                        5. **Category**: Categorize into one of: Meals, Transport, Supplies, Utilities, Software, Rent, Other.
+                        6. **Description**: A short, concise summary of the main items bought.
+                        
+                        Return only valid JSON.`
+                    }
+                ]
+            },
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        merchant: { type: Type.STRING },
+                        date: { type: Type.STRING },
+                        amount: { type: Type.NUMBER },
+                        tax: { type: Type.NUMBER },
+                        category: { type: Type.STRING },
+                        description: { type: Type.STRING },
+                    },
+                }
+            }
+        });
+
+        const text = response.text;
+        if (!text) throw new Error("No response from Gemini");
+        
+        return JSON.parse(text) as Partial<Expense>;
+    } catch (error) {
+        console.error("Error analyzing receipt with Gemini:", error);
+        throw new Error("Failed to analyze receipt.");
     }
 }

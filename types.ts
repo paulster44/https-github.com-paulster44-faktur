@@ -1,3 +1,4 @@
+
 export type InvoiceStatus = 'DRAFT' | 'SENT' | 'PAID' | 'OVERDUE' | 'PARTIALLY_PAID';
 export type TemplateId = 'modern' | 'classic' | 'minimalist';
 
@@ -76,4 +77,15 @@ export interface Invoice {
   total: number;
   amountPaid: number;
   paymentRecords: PaymentRecord[];
+}
+
+export interface Expense {
+    id: string;
+    merchant: string;
+    date: string; // YYYY-MM-DD
+    amount: number;
+    tax?: number; // Tax amount
+    category: string;
+    description?: string;
+    receiptImage?: string; // base64
 }

@@ -1,3 +1,4 @@
+
 {
     "app": {
         "loading": "Caricamento..."
@@ -8,7 +9,8 @@
         "reports": "Report",
         "clients": "Clienti",
         "items": "Articoli",
-        "settings": "Impostazioni"
+        "settings": "Impostazioni",
+        "expenses": "Spese"
     },
     "common": {
         "email": "Email",
@@ -36,10 +38,43 @@
         "item": "Articolo",
         "quantityShort": "Qtà",
         "price": "Prezzo",
+        "amount": "Importo",
         "total": "Totale",
         "subtotal": "Subtotale",
         "tax": "Imposta",
-        "totalDue": "Totale dovuto"
+        "totalDue": "Totale dovuto",
+        "date": "Data"
+    },
+    "login": {
+        "signInTitle": "Accedi al tuo account",
+        "subtitle": "Gestisci le finanze della tua azienda con facilità",
+        "password": "Password",
+        "signInButton": "Accedi",
+        "demoCredentials": "Credenziali demo",
+        "invalidCredentials": "Email o password non validi",
+        "logout": "Disconnetti"
+    },
+    "expenses": {
+        "title": "Spese",
+        "scanReceipt": "Scansiona ricevuta",
+        "manualAdd": "Aggiungi manualmente",
+        "noExpenses": "Nessuna spesa registrata",
+        "noExpensesMsg": "Scansiona una ricevuta o aggiungi una spesa manualmente per iniziare.",
+        "uploadDescription": "Carica un'immagine della ricevuta o scatta una foto per estrarre automaticamente i dettagli.",
+        "chooseFile": "Scegli un file",
+        "takePhoto": "Scatta foto",
+        "analyzing": "Analisi della ricevuta...",
+        "aiProcessing": "Utilizzo dell'IA per estrarre i dettagli dalla tua ricevuta.",
+        "newExpense": "Nuova spesa",
+        "editExpense": "Modifica spesa",
+        "merchant": "Commerciante",
+        "category": "Categoria",
+        "validationError": "Il nome del commerciante e l'importo sono obbligatori.",
+        "scanSuccess": "Ricevuta scansionata con successo!",
+        "scanError": "Impossibile analizzare la ricevuta. Riprova o inserisci manualmente.",
+        "uploadError": "Impossibile elaborare il file immagine.",
+        "deleteConfirm": "Sei sicuro di voler eliminare questa spesa?",
+        "totalExpenses": "Spese totali"
     },
     "home": {
         "outstanding": "In sospeso",
@@ -170,6 +205,9 @@
         "itemAdded": "Articolo aggiunto con successo!",
         "itemUpdated": "Articolo aggiornato con successo!",
         "itemDeleted": "Articolo eliminato con successo.",
+        "expenseAdded": "Spesa aggiunta con successo!",
+        "expenseUpdated": "Spesa aggiornata con successo!",
+        "expenseDeleted": "Spesa eliminata con successo.",
         "profileNotSet": "Il profilo aziendale non è impostato.",
         "invoiceCreated": "Fattura #{{number}} creata!",
         "invoiceUpdated": "Fattura #{{number}} aggiornata!",

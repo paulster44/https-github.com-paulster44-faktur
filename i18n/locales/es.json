@@ -1,3 +1,4 @@
+
 {
     "app": {
         "loading": "Cargando..."
@@ -8,7 +9,8 @@
         "reports": "Informes",
         "clients": "Clientes",
         "items": "Artículos",
-        "settings": "Configuración"
+        "settings": "Configuración",
+        "expenses": "Gastos"
     },
     "common": {
         "email": "Correo electrónico",
@@ -36,10 +38,43 @@
         "item": "Artículo",
         "quantityShort": "Cant.",
         "price": "Precio",
+        "amount": "Importe",
         "total": "Total",
         "subtotal": "Subtotal",
         "tax": "Impuesto",
-        "totalDue": "Total a pagar"
+        "totalDue": "Total a pagar",
+        "date": "Fecha"
+    },
+    "login": {
+        "signInTitle": "Inicie sesión en su cuenta",
+        "subtitle": "Gestione las finanzas de su negocio con facilidad",
+        "password": "Contraseña",
+        "signInButton": "Iniciar sesión",
+        "demoCredentials": "Credenciales de demostración",
+        "invalidCredentials": "Correo electrónico o contraseña no válidos",
+        "logout": "Cerrar sesión"
+    },
+    "expenses": {
+        "title": "Gastos",
+        "scanReceipt": "Escanear recibo",
+        "manualAdd": "Añadir manualmente",
+        "noExpenses": "No hay gastos registrados",
+        "noExpensesMsg": "Escanee un recibo o añada un gasto manualmente para empezar.",
+        "uploadDescription": "Suba una imagen del recibo o tome una foto para extraer los detalles automáticamente.",
+        "chooseFile": "Elegir archivo",
+        "takePhoto": "Tomar foto",
+        "analyzing": "Analizando recibo...",
+        "aiProcessing": "Usando IA para extraer detalles de su recibo.",
+        "newExpense": "Nuevo gasto",
+        "editExpense": "Editar gasto",
+        "merchant": "Comerciante",
+        "category": "Categoría",
+        "validationError": "El nombre del comerciante y el importe son obligatorios.",
+        "scanSuccess": "¡Recibo escaneado con éxito!",
+        "scanError": "Error al analizar el recibo. Inténtelo de nuevo o introdúzcalo manualmente.",
+        "uploadError": "Error al procesar el archivo de imagen.",
+        "deleteConfirm": "¿Está seguro de que desea eliminar este gasto?",
+        "totalExpenses": "Gastos totales"
     },
     "home": {
         "outstanding": "Pendiente",
@@ -143,7 +178,7 @@
         "saveChanges": "Guardar cambios"
     },
     "payments": {
-        "balanceDue": "Saldo pendiente",
+        "balance Due": "Saldo pendiente",
         "paid": "Pagado",
         "paymentHistory": "Historial de pagos",
         "noPayments": "No se han registrado pagos para esta factura.",
@@ -170,6 +205,9 @@
         "itemAdded": "¡Artículo añadido con éxito!",
         "itemUpdated": "¡Artículo actualizado con éxito!",
         "itemDeleted": "Artículo eliminado con éxito.",
+        "expenseAdded": "¡Gasto añadido con éxito!",
+        "expenseUpdated": "¡Gasto actualizado con éxito!",
+        "expenseDeleted": "Gasto eliminado con éxito.",
         "profileNotSet": "El perfil de la empresa no está configurado.",
         "invoiceCreated": "¡Factura #{{number}} creada!",
         "invoiceUpdated": "¡Factura #{{number}} actualizada!",

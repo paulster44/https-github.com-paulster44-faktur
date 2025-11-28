@@ -1,3 +1,4 @@
+
 {
     "app": {
         "loading": "Loading..."
@@ -8,7 +9,8 @@
         "reports": "Reports",
         "clients": "Clients",
         "items": "Items",
-        "settings": "Settings"
+        "settings": "Settings",
+        "expenses": "Expenses"
     },
     "common": {
         "email": "Email",
@@ -36,10 +38,21 @@
         "item": "Item",
         "quantityShort": "Qty",
         "price": "Price",
+        "amount": "Amount",
         "total": "Total",
         "subtotal": "Subtotal",
         "tax": "Tax",
-        "totalDue": "Total Due"
+        "totalDue": "Total Due",
+        "date": "Date"
+    },
+    "login": {
+        "signInTitle": "Sign in to your account",
+        "subtitle": "Manage your business finances with ease",
+        "password": "Password",
+        "signInButton": "Sign In",
+        "demoCredentials": "Demo Credentials",
+        "invalidCredentials": "Invalid email or password",
+        "logout": "Log Out"
     },
     "home": {
         "outstanding": "Outstanding",
@@ -76,6 +89,28 @@
         "saveItem": "Save Item",
         "nameRequiredAlert": "Item name is required.",
         "deleteConfirm": "Are you sure you want to delete this item?"
+    },
+    "expenses": {
+        "title": "Expenses",
+        "scanReceipt": "Scan Receipt",
+        "manualAdd": "Add Manually",
+        "noExpenses": "No expenses recorded",
+        "noExpensesMsg": "Scan a receipt or add an expense manually to start tracking.",
+        "uploadDescription": "Upload a receipt image or take a photo to automatically extract details.",
+        "chooseFile": "Choose a file",
+        "takePhoto": "Take Photo",
+        "analyzing": "Analyzing Receipt...",
+        "aiProcessing": "Using AI to extract details from your receipt.",
+        "newExpense": "New Expense",
+        "editExpense": "Edit Expense",
+        "merchant": "Merchant",
+        "category": "Category",
+        "validationError": "Merchant name and amount are required.",
+        "scanSuccess": "Receipt scanned successfully!",
+        "scanError": "Failed to analyze receipt. Please try again or enter manually.",
+        "uploadError": "Failed to process image file.",
+        "deleteConfirm": "Are you sure you want to delete this expense?",
+        "totalExpenses": "Total Expenses"
     },
     "invoices": {
         "newInvoice": "New Invoice",
@@ -170,6 +205,9 @@
         "itemAdded": "Item added successfully!",
         "itemUpdated": "Item updated successfully!",
         "itemDeleted": "Item deleted successfully.",
+        "expenseAdded": "Expense added successfully!",
+        "expenseUpdated": "Expense updated successfully!",
+        "expenseDeleted": "Expense deleted successfully.",
         "profileNotSet": "Company profile is not set up.",
         "invoiceCreated": "Invoice #{{number}} created!",
         "invoiceUpdated": "Invoice #{{number}} updated!",

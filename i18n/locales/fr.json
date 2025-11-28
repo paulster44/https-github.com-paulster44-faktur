@@ -1,3 +1,4 @@
+
 {
     "app": {
         "loading": "Chargement..."
@@ -8,7 +9,8 @@
         "reports": "Rapports",
         "clients": "Clients",
         "items": "Articles",
-        "settings": "Paramètres"
+        "settings": "Paramètres",
+        "expenses": "Dépenses"
     },
     "common": {
         "email": "Courriel",
@@ -36,10 +38,43 @@
         "item": "Article",
         "quantityShort": "Qté",
         "price": "Prix",
+        "amount": "Montant",
         "total": "Total",
         "subtotal": "Sous-total",
         "tax": "Taxe",
-        "totalDue": "Total dû"
+        "totalDue": "Total dû",
+        "date": "Date"
+    },
+    "login": {
+        "signInTitle": "Connectez-vous à votre compte",
+        "subtitle": "Gérez les finances de votre entreprise en toute simplicité",
+        "password": "Mot de passe",
+        "signInButton": "Se connecter",
+        "demoCredentials": "Identifiants de démo",
+        "invalidCredentials": "Courriel ou mot de passe invalide",
+        "logout": "Se déconnecter"
+    },
+    "expenses": {
+        "title": "Dépenses",
+        "scanReceipt": "Scanner un reçu",
+        "manualAdd": "Ajouter manuellement",
+        "noExpenses": "Aucune dépense enregistrée",
+        "noExpensesMsg": "Scannez un reçu ou ajoutez une dépense manuellement pour commencer.",
+        "uploadDescription": "Téléchargez une image de reçu ou prenez une photo pour extraire automatiquement les détails.",
+        "chooseFile": "Choisir un fichier",
+        "takePhoto": "Prendre une photo",
+        "analyzing": "Analyse du reçu...",
+        "aiProcessing": "Utilisation de l'IA pour extraire les détails de votre reçu.",
+        "newExpense": "Nouvelle dépense",
+        "editExpense": "Modifier la dépense",
+        "merchant": "Commerçant",
+        "category": "Catégorie",
+        "validationError": "Le nom du commerçant et le montant sont requis.",
+        "scanSuccess": "Reçu scanné avec succès !",
+        "scanError": "Échec de l'analyse du reçu. Veuillez réessayer ou saisir manuellement.",
+        "uploadError": "Échec du traitement du fichier image.",
+        "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette dépense ?",
+        "totalExpenses": "Total des dépenses"
     },
     "home": {
         "outstanding": "Impayé",
@@ -170,6 +205,9 @@
         "itemAdded": "Article ajouté avec succès !",
         "itemUpdated": "Article mis à jour avec succès !",
         "itemDeleted": "Article supprimé avec succès.",
+        "expenseAdded": "Dépense ajoutée avec succès !",
+        "expenseUpdated": "Dépense mise à jour avec succès !",
+        "expenseDeleted": "Dépense supprimée avec succès.",
         "profileNotSet": "Le profil de l'entreprise n'est pas configuré.",
         "invoiceCreated": "Facture #{{number}} créée !",
         "invoiceUpdated": "Facture #{{number}} mise à jour !",

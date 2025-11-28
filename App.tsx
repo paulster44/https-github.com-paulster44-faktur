@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { type Invoice, type Client, type Item, type CompanyProfile, type InvoiceStatus } from './types';
+import { type Invoice, type Client, type Item, type CompanyProfile, type InvoiceStatus, type Expense } from './types';
 import { mockInvoices, mockClients, mockItems } from './services/geminiService';
 import Header from './components/Header';
 import HomePage from './components/HomePage';
@@ -10,22 +11,35 @@ import InvoiceEditor from './components/InvoiceEditor';
 import CompanySetup from './components/CompanySetup';
 import SettingsPage from './components/SettingsPage';
 import ReportsPage from './components/ReportsPage';
+import ReceiptList from './components/ReceiptList'; // Expenses Page
+import LoginScreen from './components/LoginScreen';
 import { Toaster, toast } from './components/Toaster';
 import { LanguageProvider, useLanguage } from './i18n/LanguageProvider';
 
-export type View = 'home' | 'invoices' | 'clients' | 'items' | 'create-invoice' | 'settings' | 'reports';
+export type View = 'home' | 'invoices' | 'clients' | 'items' | 'create-invoice' | 'settings' | 'reports' | 'expenses';
 
 const MainApp: React.FC = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentView, setCurrentView] = useState<View>('home');
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [items, setItems] = useState<Item[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const { t } = useLanguage();
 
   useEffect(() => {
+    const auth = localStorage.getItem('faktur-auth');
+    if (auth === 'true') {
+        setIsAuthenticated(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
     try {
       const storedProfile = localStorage.getItem('faktur-company-profile');
       if (storedProfile) {
@@ -35,10 +49,12 @@ const MainApp: React.FC = () => {
       const storedInvoices = localStorage.getItem('faktur-invoices');
       const storedClients = localStorage.getItem('faktur-clients');
       const storedItems = localStorage.getItem('faktur-items');
+      const storedExpenses = localStorage.getItem('faktur-expenses');
       
       setInvoices(storedInvoices && storedInvoices.length > 2 ? JSON.parse(storedInvoices) : mockInvoices);
       setClients(storedClients && storedClients.length > 2 ? JSON.parse(storedClients) : mockClients);
       setItems(storedItems && storedItems.length > 2 ? JSON.parse(storedItems) : mockItems);
+      setExpenses(storedExpenses ? JSON.parse(storedExpenses) : []);
     } catch (e) {
       console.error("Failed to load data, falling back to mock data.", e);
       setInvoices(mockInvoices);
@@ -47,7 +63,7 @@ const MainApp: React.FC = () => {
     } finally {
       setIsDataLoaded(true);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if(!isDataLoaded) return;
@@ -85,6 +101,25 @@ const MainApp: React.FC = () => {
       console.error("Failed to save items to localStorage", e);
     }
   }, [items, isDataLoaded]);
+
+  useEffect(() => {
+    if(!isDataLoaded) return;
+    try {
+      localStorage.setItem('faktur-expenses', JSON.stringify(expenses));
+    } catch(e) {
+      console.error("Failed to save expenses to localStorage", e);
+    }
+  }, [expenses, isDataLoaded]);
+
+  const handleLogin = () => {
+      localStorage.setItem('faktur-auth', 'true');
+      setIsAuthenticated(true);
+  }
+
+  const handleLogout = () => {
+      localStorage.removeItem('faktur-auth');
+      setIsAuthenticated(false);
+  }
 
   const handleSaveProfile = (profile: CompanyProfile) => {
     const profileToSave = {
@@ -129,6 +164,22 @@ const MainApp: React.FC = () => {
   const deleteItem = (itemId: string) => {
     setItems(prevItems => prevItems.filter(item => item.id !== itemId));
     toast.success(t('toasts.itemDeleted'));
+  };
+
+  const addExpense = (expense: Omit<Expense, 'id'>) => {
+    const newExpense = { ...expense, id: `exp-${Date.now()}` };
+    setExpenses(prev => [newExpense, ...prev]);
+    toast.success(t('toasts.expenseAdded'));
+  };
+
+  const updateExpense = (updatedExpense: Expense) => {
+    setExpenses(prev => prev.map(e => e.id === updatedExpense.id ? updatedExpense : e));
+    toast.success(t('toasts.expenseUpdated'));
+  };
+
+  const deleteExpense = (id: string) => {
+    setExpenses(prev => prev.filter(e => e.id !== id));
+    toast.success(t('toasts.expenseDeleted'));
   };
 
   const saveOrUpdateInvoice = (invoiceData: Invoice | Omit<Invoice, 'id' | 'invoiceNumber'>) => {
@@ -194,6 +245,14 @@ const MainApp: React.FC = () => {
     toast.success(t('toasts.invoicesMarkedAsPaid', { count: invoiceIds.length }));
   };
 
+  if (!isAuthenticated) {
+      return (
+          <div className="min-h-screen bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-200 font-sans">
+              <LoginScreen onLogin={handleLogin} />
+          </div>
+      );
+  }
+
   const renderContent = () => {
     if (!isDataLoaded) {
       return <div className="flex justify-center items-center h-screen"><p>{t('app.loading')}</p></div>;
@@ -222,6 +281,8 @@ const MainApp: React.FC = () => {
         return <ClientsPage clients={clients} onAddClient={addClient} onUpdateClient={updateClient} onDeleteClient={deleteClient} />;
       case 'items':
         return <ItemsPage items={items} onAddItem={addItem} onUpdateItem={updateItem} onDeleteItem={deleteItem} />;
+      case 'expenses':
+        return <ReceiptList expenses={expenses} onAddExpense={addExpense} onUpdateExpense={updateExpense} onDeleteExpense={deleteExpense} />;
       case 'create-invoice':
         return <InvoiceEditor 
             clients={clients} 
@@ -245,6 +306,11 @@ const MainApp: React.FC = () => {
         {renderContent()}
       </main>
       <Toaster />
+      <div className="fixed bottom-4 left-4">
+        <button onClick={handleLogout} className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+            {t('login.logout')}
+        </button>
+      </div>
     </div>
   );
 };

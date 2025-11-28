@@ -1,5 +1,6 @@
+
 import React, { useState, useRef, useEffect } from 'react';
-import { DocumentTextIcon, HomeIcon, UsersIcon, CubeIcon, CogIcon, GlobeIcon, ChartBarIcon } from './icons';
+import { DocumentTextIcon, HomeIcon, UsersIcon, CubeIcon, CogIcon, GlobeIcon, ChartBarIcon, ReceiptIcon } from './icons';
 import { type View } from '../App';
 import { useLanguage } from '../i18n/LanguageProvider';
 
@@ -90,6 +91,7 @@ const Header: React.FC<HeaderProps> = ({ currentView, onNavigate }) => {
           <nav className="hidden md:flex items-center space-x-2">
              <NavItem label={t('header.home')} icon={<HomeIcon className="h-5 w-5"/>} isActive={currentView === 'home'} onClick={() => onNavigate('home')} />
              <NavItem label={t('header.invoices')} icon={<DocumentTextIcon className="h-5 w-5"/>} isActive={currentView === 'invoices'} onClick={() => onNavigate('invoices')} />
+             <NavItem label={t('header.expenses')} icon={<ReceiptIcon className="h-5 w-5"/>} isActive={currentView === 'expenses'} onClick={() => onNavigate('expenses')} />
              <NavItem label={t('header.reports')} icon={<ChartBarIcon className="h-5 w-5"/>} isActive={currentView === 'reports'} onClick={() => onNavigate('reports')} />
              <NavItem label={t('header.clients')} icon={<UsersIcon className="h-5 w-5"/>} isActive={currentView === 'clients'} onClick={() => onNavigate('clients')} />
              <NavItem label={t('header.items')} icon={<CubeIcon className="h-5 w-5"/>} isActive={currentView === 'items'} onClick={() => onNavigate('items')} />
