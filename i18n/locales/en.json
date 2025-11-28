@@ -46,7 +46,9 @@
         "tax": "Tax",
         "totalTax": "Total Tax",
         "totalDue": "Total Due",
-        "date": "Date"
+        "date": "Date",
+        "scan": "Scan",
+        "selectAll": "Select All"
     },
     "login": {
         "signInTitle": "Sign in to your account",

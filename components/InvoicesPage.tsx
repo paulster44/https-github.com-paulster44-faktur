@@ -67,49 +67,92 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, onInvoiceSelect, se
                 <h3 className="text-lg font-medium text-slate-900 dark:text-white">{t('invoices.noInvoicesYet')}</h3>
             </div>
         ) : (
-            <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
-                    <thead className="bg-slate-50 dark:bg-slate-700/50">
-                        <tr>
-                            <th scope="col" className="px-6 py-3">
-                                <input 
-                                    type="checkbox"
-                                    className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
-                                    checked={isAllSelected}
-                                    ref={input => {
-                                        if (input) input.indeterminate = selectedInvoices.length > 0 && !isAllSelected;
-                                    }}
-                                    onChange={onSelectAll}
-                                />
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('invoices.number')}</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('invoices.client')}</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('common.dueDate')}</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('invoices.status')}</th>
-                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('common.total')}</th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
-                        {invoices.map(invoice => (
-                            <tr key={invoice.id} className={`${selectedInvoices.includes(invoice.id) ? 'bg-sky-50 dark:bg-sky-900/50' : ''} hover:bg-slate-50 dark:hover:bg-slate-700/50`}>
-                                <td className="px-6 py-4 whitespace-nowrap" onClick={e => e.stopPropagation()}>
+            <>
+                {/* Mobile View - Cards */}
+                <div className="block md:hidden space-y-4 p-4">
+                    <div className="flex items-center mb-2 px-2">
+                         <input 
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500 mr-2"
+                            checked={isAllSelected}
+                            onChange={onSelectAll}
+                        />
+                        <span className="text-sm text-slate-500">{t('common.selectAll')}</span>
+                    </div>
+                    {invoices.map(invoice => (
+                        <div 
+                            key={invoice.id} 
+                            onClick={() => onInvoiceSelect(invoice)}
+                            className={`bg-white dark:bg-slate-800 rounded-lg shadow p-4 border ${selectedInvoices.includes(invoice.id) ? 'border-sky-500 ring-1 ring-sky-500' : 'border-transparent'}`}
+                        >
+                            <div className="flex justify-between items-start mb-2">
+                                <div className="flex items-center">
                                     <input
                                         type="checkbox"
-                                        className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+                                        className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500 mr-3"
                                         checked={selectedInvoices.includes(invoice.id)}
-                                        onChange={() => onSelectOne(invoice.id)}
+                                        onChange={(e) => { e.stopPropagation(); onSelectOne(invoice.id); }}
                                     />
-                                </td>
-                                <td onClick={() => onInvoiceSelect(invoice)} className="px-6 py-4 whitespace-nowrap text-sm font-medium text-sky-600 dark:text-sky-400 cursor-pointer">#{invoice.invoiceNumber}</td>
-                                <td onClick={() => onInvoiceSelect(invoice)} className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-white cursor-pointer">{invoice.client.name}</td>
-                                <td onClick={() => onInvoiceSelect(invoice)} className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400 cursor-pointer">{formatDate(invoice.dueDate)}</td>
-                                <td onClick={() => onInvoiceSelect(invoice)} className="px-6 py-4 whitespace-nowrap text-sm cursor-pointer"><StatusBadge status={invoice.status} /></td>
-                                <td onClick={() => onInvoiceSelect(invoice)} className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium cursor-pointer">{formatCurrency(invoice.total)}</td>
+                                    <span className="text-sm font-medium text-sky-600 dark:text-sky-400">#{invoice.invoiceNumber}</span>
+                                </div>
+                                <StatusBadge status={invoice.status} />
+                            </div>
+                            <div className="mb-2">
+                                <p className="text-base font-semibold text-slate-900 dark:text-white">{invoice.client.name}</p>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="text-slate-500 dark:text-slate-400">{t('common.dueDate')}: {formatDate(invoice.dueDate)}</span>
+                                <span className="font-bold text-slate-900 dark:text-white">{formatCurrency(invoice.total)}</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Desktop View - Table */}
+                <div className="hidden md:block overflow-x-auto">
+                    <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+                        <thead className="bg-slate-50 dark:bg-slate-700/50">
+                            <tr>
+                                <th scope="col" className="px-6 py-3">
+                                    <input 
+                                        type="checkbox"
+                                        className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+                                        checked={isAllSelected}
+                                        ref={input => {
+                                            if (input) input.indeterminate = selectedInvoices.length > 0 && !isAllSelected;
+                                        }}
+                                        onChange={onSelectAll}
+                                    />
+                                </th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('invoices.number')}</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('invoices.client')}</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('common.dueDate')}</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('invoices.status')}</th>
+                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('common.total')}</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
+                            {invoices.map(invoice => (
+                                <tr key={invoice.id} className={`${selectedInvoices.includes(invoice.id) ? 'bg-sky-50 dark:bg-sky-900/50' : ''} hover:bg-slate-50 dark:hover:bg-slate-700/50`}>
+                                    <td className="px-6 py-4 whitespace-nowrap" onClick={e => e.stopPropagation()}>
+                                        <input
+                                            type="checkbox"
+                                            className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+                                            checked={selectedInvoices.includes(invoice.id)}
+                                            onChange={() => onSelectOne(invoice.id)}
+                                        />
+                                    </td>
+                                    <td onClick={() => onInvoiceSelect(invoice)} className="px-6 py-4 whitespace-nowrap text-sm font-medium text-sky-600 dark:text-sky-400 cursor-pointer">#{invoice.invoiceNumber}</td>
+                                    <td onClick={() => onInvoiceSelect(invoice)} className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-white cursor-pointer">{invoice.client.name}</td>
+                                    <td onClick={() => onInvoiceSelect(invoice)} className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400 cursor-pointer">{formatDate(invoice.dueDate)}</td>
+                                    <td onClick={() => onInvoiceSelect(invoice)} className="px-6 py-4 whitespace-nowrap text-sm cursor-pointer"><StatusBadge status={invoice.status} /></td>
+                                    <td onClick={() => onInvoiceSelect(invoice)} className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium cursor-pointer">{formatCurrency(invoice.total)}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </>
         )}
         </>
      );
@@ -169,7 +212,7 @@ const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpd
 
     return (
         <>
-            <div className="relative bg-white dark:bg-slate-800 rounded-lg shadow-lg">
+            <div className="relative bg-white dark:bg-slate-800 rounded-lg shadow-lg md:overflow-hidden">
                 {selectedInvoices.length > 0 && <BulkActionsBar />}
                 <div className="p-4 md:p-6 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
                      <h2 className="text-xl font-bold">{t('header.invoices')}</h2>

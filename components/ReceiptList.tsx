@@ -119,28 +119,30 @@ const ReceiptList: React.FC<ReceiptListProps> = ({ expenses, onAddExpense, onUpd
                     <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg">
                         <div className="p-4 md:p-6 border-b border-slate-200 dark:border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4">
                             <h2 className="text-xl font-bold">{t('expenses.title')}</h2>
-                            <div className="flex flex-wrap gap-2">
-                                <button onClick={handleExportCSV} className="inline-flex items-center px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600">
-                                    <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
-                                    CSV
+                            <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                                <button onClick={handleExportCSV} className="flex-1 md:flex-none inline-flex items-center justify-center px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600">
+                                    <ArrowDownTrayIcon className="h-4 w-4 md:mr-2" />
+                                    <span className="hidden md:inline">CSV</span>
                                 </button>
-                                <button onClick={handleExportPDF} className="inline-flex items-center px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600">
-                                    <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
-                                    PDF
+                                <button onClick={handleExportPDF} className="flex-1 md:flex-none inline-flex items-center justify-center px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600">
+                                    <ArrowDownTrayIcon className="h-4 w-4 md:mr-2" />
+                                    <span className="hidden md:inline">PDF</span>
                                 </button>
                                 <button
                                     onClick={handleManualAdd}
-                                    className="inline-flex items-center justify-center rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-600"
+                                    className="flex-1 md:flex-none inline-flex items-center justify-center rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-600"
                                 >
-                                    <PlusIcon className="-ml-1 mr-2 h-5 w-5"/>
-                                    {t('expenses.manualAdd')}
+                                    <PlusIcon className="-ml-1 md:mr-2 h-5 w-5"/>
+                                    <span className="hidden md:inline">{t('expenses.manualAdd')}</span>
+                                    <span className="md:hidden">{t('common.add')}</span>
                                 </button>
                                 <button
                                     onClick={() => setViewState('upload')}
-                                    className="inline-flex items-center justify-center rounded-md border border-transparent bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-sky-700"
+                                    className="flex-1 md:flex-none inline-flex items-center justify-center rounded-md border border-transparent bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-sky-700"
                                 >
-                                    <CameraIcon className="-ml-1 mr-2 h-5 w-5"/>
-                                    {t('expenses.scanReceipt')}
+                                    <CameraIcon className="-ml-1 md:mr-2 h-5 w-5"/>
+                                    <span className="hidden md:inline">{t('expenses.scanReceipt')}</span>
+                                    <span className="md:hidden">{t('common.scan')}</span>
                                 </button>
                             </div>
                         </div>
@@ -152,51 +154,95 @@ const ReceiptList: React.FC<ReceiptListProps> = ({ expenses, onAddExpense, onUpd
                                 <p className="mt-1 text-sm text-slate-500">{t('expenses.noExpensesMsg')}</p>
                             </div>
                         ) : (
-                             <div className="overflow-x-auto" id="expense-table">
-                                <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700 bg-white dark:bg-slate-800">
-                                    <thead className="bg-slate-50 dark:bg-slate-700/50">
-                                        <tr>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('common.date')}</th>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('expenses.merchant')}</th>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('expenses.category')}</th>
-                                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('common.amount')}</th>
-                                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('common.tax')}</th>
-                                            <th scope="col" className="relative px-6 py-3">
-                                                <span className="sr-only">{t('common.edit')}</span>
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
-                                        {expenses.map((expense) => (
-                                            <tr key={expense.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{expense.date}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-white flex items-center">
+                            <>
+                                {/* Mobile View - Cards */}
+                                <div className="block md:hidden p-4 space-y-4">
+                                     {expenses.map((expense) => (
+                                        <div key={expense.id} className="bg-white dark:bg-slate-800 rounded-lg shadow p-4 border border-slate-200 dark:border-slate-700">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div className="flex items-center">
                                                     {expense.receiptImage && <ReceiptIcon className="h-4 w-4 mr-2 text-sky-500" />}
-                                                    {expense.merchant}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{expense.category}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-slate-900 dark:text-white">${expense.amount.toFixed(2)}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-slate-500 dark:text-slate-400">
-                                                    ${(expense.tax || 0).toFixed(2)}
-                                                    {expense.taxDetails && expense.taxDetails.length > 0 && (
-                                                        <div className="text-xs text-slate-400">
-                                                            {expense.taxDetails.map(d => d.name).join(', ')}
-                                                        </div>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <button onClick={() => handleEdit(expense)} className="text-sky-600 hover:text-sky-900 dark:text-sky-400 dark:hover:text-sky-300 mr-3">
-                                                        <PencilIcon className="h-4 w-4" />
-                                                    </button>
-                                                    <button onClick={() => handleDelete(expense.id)} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
-                                                        <TrashIcon className="h-4 w-4" />
-                                                    </button>
-                                                </td>
+                                                    <h4 className="text-base font-semibold text-slate-900 dark:text-white">{expense.merchant}</h4>
+                                                </div>
+                                                <span className="text-sm font-bold text-slate-900 dark:text-white">${expense.amount.toFixed(2)}</span>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-2 text-sm text-slate-500 dark:text-slate-400 mb-3">
+                                                <div>{expense.date}</div>
+                                                <div className="text-right">{expense.category}</div>
+                                            </div>
+                                            {(expense.taxDetails && expense.taxDetails.length > 0) || expense.tax ? (
+                                                <div className="text-xs text-slate-400 mb-3 bg-slate-50 dark:bg-slate-700/50 p-2 rounded">
+                                                     <div className="flex justify-between">
+                                                        <span>{t('common.totalTax')}:</span>
+                                                        <span>${(expense.tax || 0).toFixed(2)}</span>
+                                                     </div>
+                                                     {expense.taxDetails && expense.taxDetails.map((d, i) => (
+                                                         <div key={i} className="flex justify-between pl-2">
+                                                            <span>{d.name}:</span>
+                                                            <span>${d.amount.toFixed(2)}</span>
+                                                         </div>
+                                                     ))}
+                                                </div>
+                                            ) : null}
+                                            <div className="flex justify-end space-x-3 pt-2 border-t border-slate-100 dark:border-slate-700">
+                                                <button onClick={() => handleEdit(expense)} className="text-sky-600 hover:text-sky-900 dark:text-sky-400 text-sm font-medium">
+                                                    {t('common.edit')}
+                                                </button>
+                                                <button onClick={() => handleDelete(expense.id)} className="text-red-600 hover:text-red-900 dark:text-red-400 text-sm font-medium">
+                                                    {t('common.delete')}
+                                                </button>
+                                            </div>
+                                        </div>
+                                     ))}
+                                </div>
+
+                                {/* Desktop View - Table */}
+                                <div className="hidden md:block overflow-x-auto" id="expense-table">
+                                    <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700 bg-white dark:bg-slate-800">
+                                        <thead className="bg-slate-50 dark:bg-slate-700/50">
+                                            <tr>
+                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('common.date')}</th>
+                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('expenses.merchant')}</th>
+                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('expenses.category')}</th>
+                                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('common.amount')}</th>
+                                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('common.tax')}</th>
+                                                <th scope="col" className="relative px-6 py-3">
+                                                    <span className="sr-only">{t('common.edit')}</span>
+                                                </th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                        </thead>
+                                        <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
+                                            {expenses.map((expense) => (
+                                                <tr key={expense.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{expense.date}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-white flex items-center">
+                                                        {expense.receiptImage && <ReceiptIcon className="h-4 w-4 mr-2 text-sky-500" />}
+                                                        {expense.merchant}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{expense.category}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-slate-900 dark:text-white">${expense.amount.toFixed(2)}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-slate-500 dark:text-slate-400">
+                                                        ${(expense.tax || 0).toFixed(2)}
+                                                        {expense.taxDetails && expense.taxDetails.length > 0 && (
+                                                            <div className="text-xs text-slate-400">
+                                                                {expense.taxDetails.map(d => d.name).join(', ')}
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                        <button onClick={() => handleEdit(expense)} className="text-sky-600 hover:text-sky-900 dark:text-sky-400 dark:hover:text-sky-300 mr-3">
+                                                            <PencilIcon className="h-4 w-4" />
+                                                        </button>
+                                                        <button onClick={() => handleDelete(expense.id)} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
+                                                            <TrashIcon className="h-4 w-4" />
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </>
                         )}
                         <div className="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex justify-end">
                             <span className="text-sm font-medium text-slate-900 dark:text-white mr-2">{t('expenses.totalExpenses')}:</span>

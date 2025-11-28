@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { DocumentTextIcon, HomeIcon, UsersIcon, CubeIcon, CogIcon, GlobeIcon, ChartBarIcon, ReceiptIcon } from './icons';
+import { DocumentTextIcon, HomeIcon, UsersIcon, CubeIcon, CogIcon, GlobeIcon, ChartBarIcon, ReceiptIcon, MenuIcon, XIcon } from './icons';
 import { type View } from '../App';
 import { useLanguage } from '../i18n/LanguageProvider';
 
@@ -14,13 +14,14 @@ const NavItem: React.FC<{
     icon: React.ReactNode;
     isActive: boolean;
     onClick: () => void;
-}> = ({ label, icon, isActive, onClick }) => {
+    className?: string;
+}> = ({ label, icon, isActive, onClick, className = "" }) => {
     const activeClasses = "bg-slate-100 text-sky-600 dark:bg-slate-700 dark:text-white";
     const inactiveClasses = "text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-white";
     return (
         <button
             onClick={onClick}
-            className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md ${isActive ? activeClasses : inactiveClasses}`}
+            className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md w-full ${isActive ? activeClasses : inactiveClasses} ${className}`}
         >
             {icon}
             <span className="ml-3">{label}</span>
@@ -77,34 +78,82 @@ const LanguageSwitcher: React.FC = () => {
 
 const Header: React.FC<HeaderProps> = ({ currentView, onNavigate }) => {
   const { t } = useLanguage();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleNavClick = (view: View) => {
+    onNavigate(view);
+    setIsMobileMenuOpen(false);
+  }
+
+  const navItems = [
+      { label: t('header.home'), icon: <HomeIcon className="h-5 w-5"/>, view: 'home' as View },
+      { label: t('header.invoices'), icon: <DocumentTextIcon className="h-5 w-5"/>, view: 'invoices' as View },
+      { label: t('header.expenses'), icon: <ReceiptIcon className="h-5 w-5"/>, view: 'expenses' as View },
+      { label: t('header.reports'), icon: <ChartBarIcon className="h-5 w-5"/>, view: 'reports' as View },
+      { label: t('header.clients'), icon: <UsersIcon className="h-5 w-5"/>, view: 'clients' as View },
+      { label: t('header.items'), icon: <CubeIcon className="h-5 w-5"/>, view: 'items' as View },
+      { label: t('header.settings'), icon: <CogIcon className="h-5 w-5"/>, view: 'settings' as View },
+  ];
 
   return (
     <header className="bg-white dark:bg-slate-800 shadow-sm sticky top-0 z-10">
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex justify-between items-center py-3">
           <div className="flex items-center">
-            <DocumentTextIcon className="h-8 w-8 text-sky-500 mr-3" />
-            <h1 className="text-xl font-bold text-slate-800 dark:text-white">
+            {/* Mobile Menu Button */}
+            <button 
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="md:hidden mr-3 p-2 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-700 focus:outline-none"
+            >
+                {isMobileMenuOpen ? <XIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
+            </button>
+
+            <DocumentTextIcon className="h-8 w-8 text-sky-500 mr-3 hidden md:block" />
+            <DocumentTextIcon className="h-6 w-6 text-sky-500 mr-2 md:hidden" />
+            <h1 className="text-xl font-bold text-slate-800 dark:text-white truncate">
               Faktur
             </h1>
           </div>
+          
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-2">
-             <NavItem label={t('header.home')} icon={<HomeIcon className="h-5 w-5"/>} isActive={currentView === 'home'} onClick={() => onNavigate('home')} />
-             <NavItem label={t('header.invoices')} icon={<DocumentTextIcon className="h-5 w-5"/>} isActive={currentView === 'invoices'} onClick={() => onNavigate('invoices')} />
-             <NavItem label={t('header.expenses')} icon={<ReceiptIcon className="h-5 w-5"/>} isActive={currentView === 'expenses'} onClick={() => onNavigate('expenses')} />
-             <NavItem label={t('header.reports')} icon={<ChartBarIcon className="h-5 w-5"/>} isActive={currentView === 'reports'} onClick={() => onNavigate('reports')} />
-             <NavItem label={t('header.clients')} icon={<UsersIcon className="h-5 w-5"/>} isActive={currentView === 'clients'} onClick={() => onNavigate('clients')} />
-             <NavItem label={t('header.items')} icon={<CubeIcon className="h-5 w-5"/>} isActive={currentView === 'items'} onClick={() => onNavigate('items')} />
-             <NavItem label={t('header.settings')} icon={<CogIcon className="h-5 w-5"/>} isActive={currentView === 'settings'} onClick={() => onNavigate('settings')} />
+             {navItems.map(item => (
+                 <NavItem 
+                    key={item.view}
+                    label={item.label} 
+                    icon={item.icon} 
+                    isActive={currentView === item.view} 
+                    onClick={() => handleNavClick(item.view)} 
+                 />
+             ))}
           </nav>
+
           <div className="flex items-center space-x-4">
             <LanguageSwitcher />
-            <div className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center text-xs font-bold text-slate-500">
+            <div className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center text-xs font-bold text-slate-500 hidden md:flex">
               U
             </div>
           </div>
         </div>
       </div>
+
+      {/* Mobile Menu Dropdown */}
+      {isMobileMenuOpen && (
+          <div className="md:hidden border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+              <div className="px-2 pt-2 pb-3 space-y-1">
+                  {navItems.map(item => (
+                     <NavItem 
+                        key={item.view}
+                        label={item.label} 
+                        icon={item.icon} 
+                        isActive={currentView === item.view} 
+                        onClick={() => handleNavClick(item.view)}
+                        className="w-full"
+                     />
+                 ))}
+              </div>
+          </div>
+      )}
     </header>
   );
 };
