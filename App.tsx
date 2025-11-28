@@ -13,10 +13,13 @@ import SettingsPage from './components/SettingsPage';
 import ReportsPage from './components/ReportsPage';
 import ReceiptList from './components/ReceiptList'; // Expenses Page
 import LoginScreen from './components/LoginScreen';
+import SendInvoiceModal from './components/SendInvoiceModal';
 import { Toaster, toast } from './components/Toaster';
 import { LanguageProvider, useLanguage } from './i18n/LanguageProvider';
 
 export type View = 'home' | 'invoices' | 'clients' | 'items' | 'create-invoice' | 'settings' | 'reports' | 'expenses';
+
+export type SendMode = 'send' | 'resend' | 'reminder';
 
 const MainApp: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -27,6 +30,10 @@ const MainApp: React.FC = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
+  
+  // Replaces draftInvoiceToSend with a richer context
+  const [sendContext, setSendContext] = useState<{ invoice: Invoice, mode: SendMode } | null>(null);
+  
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const { t } = useLanguage();
 
@@ -183,12 +190,15 @@ const MainApp: React.FC = () => {
   };
 
   const saveOrUpdateInvoice = (invoiceData: Invoice | Omit<Invoice, 'id' | 'invoiceNumber'>) => {
+    let savedInvoice: Invoice;
+
     if ('id' in invoiceData) {
         // Update existing invoice
         const updatedInvoice = invoiceData as Invoice;
         setInvoices(prevInvoices => 
             prevInvoices.map(inv => (inv.id === updatedInvoice.id ? updatedInvoice : inv))
         );
+        savedInvoice = updatedInvoice;
         toast.success(t('toasts.invoiceUpdated', { number: updatedInvoice.invoiceNumber }));
     } else {
         // Create new invoice
@@ -210,12 +220,43 @@ const MainApp: React.FC = () => {
                 nextInvoiceNumber: prevProfile.nextInvoiceNumber + 1,
             };
         });
+        savedInvoice = newInvoice;
         toast.success(t('toasts.invoiceCreated', { number: newInvoiceNumber }));
     }
-    setCurrentView('invoices');
+    
+    // Instead of going directly to invoices list, show the Send/Draft modal with 'send' mode
+    setSendContext({ invoice: savedInvoice, mode: 'send' });
     setEditingInvoice(null);
   };
   
+  const handleInitiateSend = (invoice: Invoice, mode: SendMode) => {
+      setSendContext({ invoice, mode });
+  };
+
+  const handleInvoiceSent = (sentInvoice: Invoice) => {
+    // Update the invoice (status might have changed)
+    setInvoices(prev => prev.map(inv => inv.id === sentInvoice.id ? sentInvoice : inv));
+    
+    if (sendContext?.mode === 'reminder') {
+        toast.success(t('toasts.reminderSent'));
+    } else {
+        toast.success(t('toasts.invoiceSent'));
+    }
+    
+    setSendContext(null);
+    // Stay on current view unless we were in creation flow
+    if (currentView === 'create-invoice') {
+        setCurrentView('invoices');
+    }
+  };
+
+  const handleInvoiceSkipped = () => {
+    setSendContext(null);
+    if (currentView === 'create-invoice') {
+        setCurrentView('invoices');
+    }
+  }
+
   const updateInvoicePayment = (invoiceId: string, updatedInvoiceData: Partial<Invoice>) => {
     setInvoices(prev => prev.map(inv => inv.id === invoiceId ? {...inv, ...updatedInvoiceData} : inv));
   }
@@ -262,6 +303,17 @@ const MainApp: React.FC = () => {
       return <CompanySetup onSave={handleSaveProfile} />;
     }
 
+    // Modal takes precedence for sending flow
+    if (sendContext) {
+        return <SendInvoiceModal 
+            invoice={sendContext.invoice} 
+            companyProfile={companyProfile}
+            onSend={handleInvoiceSent}
+            onSkip={handleInvoiceSkipped}
+            mode={sendContext.mode}
+        />;
+    }
+
     switch (currentView) {
       case 'home':
         return <HomePage invoices={invoices} onNavigate={setCurrentView} />;
@@ -274,6 +326,7 @@ const MainApp: React.FC = () => {
             onDeleteInvoices={deleteInvoices}
             onBulkMarkAsPaid={bulkMarkAsPaid}
             onEditInvoice={handleEditInvoice}
+            onSendInvoice={handleInitiateSend}
         />;
       case 'reports':
         return <ReportsPage invoices={invoices} clients={clients} />;
@@ -301,16 +354,18 @@ const MainApp: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-200 font-sans">
-      {companyProfile && <Header currentView={currentView} onNavigate={setCurrentView} />}
-      <main className="container mx-auto p-4 md:p-6">
+      {companyProfile && !sendContext && <Header currentView={currentView} onNavigate={setCurrentView} />}
+      <main className={`container mx-auto p-4 md:p-6 ${sendContext ? 'h-screen overflow-hidden p-0 m-0 max-w-none' : ''}`}>
         {renderContent()}
       </main>
       <Toaster />
-      <div className="fixed bottom-4 left-4">
-        <button onClick={handleLogout} className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
-            {t('login.logout')}
-        </button>
-      </div>
+      {!sendContext && (
+          <div className="fixed bottom-4 left-4">
+            <button onClick={handleLogout} className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                {t('login.logout')}
+            </button>
+          </div>
+      )}
     </div>
   );
 };

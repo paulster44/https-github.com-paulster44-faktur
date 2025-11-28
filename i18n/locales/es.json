@@ -80,42 +80,6 @@
         "taxBreakdown": "Desglose de impuestos",
         "noTaxDetails": "No hay detalles de impuestos."
     },
-    "home": {
-        "outstanding": "Pendiente",
-        "overdue": "Vencido",
-        "inDraft": "En borrador",
-        "readyToGetPaid": "¿Listo para recibir pagos?",
-        "createInvoiceBanner": "Cree y envíe una factura profesional en minutos.",
-        "createInvoice": "Crear factura",
-        "recentActivity": "Actividad reciente",
-        "viewAll": "Ver todo",
-        "due": "Vence",
-        "noRecentInvoices": "No hay facturas recientes para mostrar."
-    },
-    "clients": {
-        "addClient": "Añadir cliente",
-        "noClientsFound": "No se encontraron clientes",
-        "noClientsMessage": "Haga clic en \"Añadir cliente\" para crear el primero.",
-        "editClient": "Editar cliente",
-        "addNewClient": "Añadir nuevo cliente",
-        "clientName": "Nombre del cliente",
-        "contactName": "Nombre de contacto",
-        "saveClient": "Guardar cliente",
-        "nameRequiredAlert": "El nombre del cliente es obligatorio.",
-        "deleteConfirm": "¿Está seguro de que desea eliminar este cliente?"
-    },
-    "items": {
-        "title": "Artículos y Servicios",
-        "addItem": "Añadir artículo",
-        "noItemsFound": "No se encontraron artículos",
-        "noItemsMessage": "Haga clic en \"Añadir artículo\" para crear el primero.",
-        "editItem": "Editar artículo",
-        "addNewItem": "Añadir nuevo artículo",
-        "itemName": "Nombre del artículo",
-        "saveItem": "Guardar artículo",
-        "nameRequiredAlert": "El nombre del artículo es obligatorio.",
-        "deleteConfirm": "¿Está seguro de que desea eliminar este artículo?"
-    },
     "invoices": {
         "newInvoice": "Nueva factura",
         "allInvoices": "Todas las facturas",
@@ -140,6 +104,27 @@
         "selectItem": "Seleccionar artículo",
         "itemDescriptionPlaceholder": "Descripción del artículo",
         "addLineItem": "Añadir línea"
+    },
+    "sendInvoice": {
+        "title": "Enviar factura",
+        "titleReminder": "Enviar recordatorio",
+        "description": "Previsualice su factura y envíela a su cliente.",
+        "to": "Para",
+        "subject": "Asunto",
+        "message": "Mensaje",
+        "sendButton": "Enviar factura",
+        "sendReminderButton": "Enviar recordatorio",
+        "skipButton": "Guardar como borrador",
+        "sendNow": "Enviar",
+        "resend": "Reenviar",
+        "sendReminder": "Recordar",
+        "reminderPrefix": "RECORDATORIO",
+        "resendPrefix": "REENVÍO",
+        "greeting": "Hola {{name}}",
+        "body": "Adjunto encontrará la factura #{{number}} por los servicios recientes.\n\nTotal a pagar: {{amount}} $\nFecha de vencimiento: {{date}}",
+        "resendBody": "Le reenvío la factura #{{number}} para sus registros.",
+        "reminderBody": "Este es un recordatorio amistoso de que la factura #{{number}} venció el {{date}}.\n\nTotal vencido: {{amount}} $",
+        "closing": "Gracias por su confianza"
     },
     "reports": {
         "title": "Informes",
@@ -185,7 +170,7 @@
         "backupData": "Copia de seguridad (JSON)"
     },
     "payments": {
-        "balance Due": "Saldo pendiente",
+        "balanceDue": "Saldo pendiente",
         "paid": "Pagado",
         "paymentHistory": "Historial de pagos",
         "noPayments": "No se han registrado pagos para esta factura.",
@@ -218,6 +203,8 @@
         "profileNotSet": "El perfil de la empresa no está configurado.",
         "invoiceCreated": "¡Factura #{{number}} creada!",
         "invoiceUpdated": "¡Factura #{{number}} actualizada!",
+        "invoiceSent": "¡Factura enviada con éxito!",
+        "reminderSent": "¡Recordatorio enviado con éxito!",
         "paymentRecorded": "¡Pago registrado con éxito!",
         "invoicesDeleted": "{{count}} facturas eliminadas con éxito.",
         "invoicesMarkedAsPaid": "{{count}} facturas marcadas como pagadas.",

@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { type Invoice, type InvoiceStatus, type CompanyProfile } from '../types';
 import { PlusIcon, TrashIcon, CheckCircleIcon } from './icons';
-import { type View } from '../App';
+import { type View, type SendMode } from '../App';
 import InvoiceDetailsModal from './InvoiceDetailsModal';
 import ConfirmationModal from './ConfirmationModal';
 import { useLanguage } from '../i18n/LanguageProvider';
@@ -13,6 +14,7 @@ interface InvoicesPageProps {
     onDeleteInvoices: (invoiceIds: string[]) => void;
     onBulkMarkAsPaid: (invoiceIds: string[]) => void;
     onEditInvoice: (invoice: Invoice) => void;
+    onSendInvoice: (invoice: Invoice, mode: SendMode) => void;
     companyProfile: CompanyProfile;
 }
 
@@ -114,7 +116,7 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, onInvoiceSelect, se
 }
 
 
-const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpdateInvoice, onDeleteInvoices, onBulkMarkAsPaid, onEditInvoice, companyProfile }) => {
+const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpdateInvoice, onDeleteInvoices, onBulkMarkAsPaid, onEditInvoice, onSendInvoice, companyProfile }) => {
     const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
     const [selectedInvoices, setSelectedInvoices] = useState<string[]>([]);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
@@ -190,6 +192,7 @@ const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpd
                     onUpdateInvoice={onUpdateInvoice}
                     companyProfile={companyProfile}
                     onEdit={onEditInvoice}
+                    onSend={onSendInvoice}
                 />
             )}
             <ConfirmationModal

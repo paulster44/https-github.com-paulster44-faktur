@@ -1,9 +1,12 @@
+
 import React, { useState } from 'react';
 import { type Invoice, type PaymentRecord, type CompanyProfile, type InvoiceStatus } from '../types';
-import { XIcon, PlusIcon, PencilIcon, PrinterIcon, ArrowDownTrayIcon } from './icons';
+import { type SendMode } from '../App';
+import { XIcon, PlusIcon, PencilIcon, PrinterIcon, ArrowDownTrayIcon, CheckCircleIcon } from './icons';
 import { toast } from './Toaster';
 import { useLanguage } from '../i18n/LanguageProvider';
 import { templates } from './templates';
+import InvoicePreview from './InvoicePreview';
 
 interface InvoiceDetailsModalProps {
     invoice: Invoice;
@@ -11,6 +14,7 @@ interface InvoiceDetailsModalProps {
     onClose: () => void;
     onUpdateInvoice: (invoiceId: string, updatedData: Partial<Invoice>) => void;
     onEdit: (invoice: Invoice) => void;
+    onSend: (invoice: Invoice, mode: SendMode) => void;
 }
 
 const formatCurrency = (amount: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -18,7 +22,7 @@ const formatDate = (dateString: string) => new Date(dateString).toLocaleDateStri
 
 const today = new Date().toISOString().split('T')[0];
 
-const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ invoice, companyProfile, onClose, onUpdateInvoice, onEdit }) => {
+const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ invoice, companyProfile, onClose, onUpdateInvoice, onEdit, onSend }) => {
     const [isPaymentFormVisible, setIsPaymentFormVisible] = useState(false);
     const [isPrinting, setIsPrinting] = useState(false);
     const [payment, setPayment] = useState<Omit<PaymentRecord, 'id'>>({
@@ -30,6 +34,7 @@ const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ invoice, comp
     const { t } = useLanguage();
 
     const balanceDue = invoice.total - invoice.amountPaid;
+    const isOverdue = invoice.status !== 'PAID' && new Date(invoice.dueDate) < new Date(today);
 
     const handlePaymentChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -112,9 +117,6 @@ const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ invoice, comp
                         display: none !important;
                     }
                 }
-                #invoice-to-print .invoice-preview {
-                    ${selectedTemplate.css}
-                }
             `}
             </style>
             <div className={`bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-4xl my-8 non-printable ${isPrinting ? 'printable-area' : ''}`} onClick={e => e.stopPropagation()}>
@@ -135,72 +137,55 @@ const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ invoice, comp
                         <XIcon className="h-6 w-6 text-slate-500" />
                     </button>
                 </div>
-                <div className="p-6 md:p-8 max-h-[80vh] overflow-y-auto">
+
+                {/* Status / Action Bar */}
+                <div className="px-6 py-4 bg-slate-50 dark:bg-slate-700/50 flex flex-col sm:flex-row justify-between items-center gap-4 border-b border-slate-200 dark:border-slate-700">
+                     <div className="flex items-center space-x-2">
+                         <span className="text-sm text-slate-500 dark:text-slate-400">{t('invoices.status')}:</span>
+                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            ${invoice.status === 'PAID' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 
+                              invoice.status === 'OVERDUE' || isOverdue ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300' :
+                              invoice.status === 'SENT' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
+                              'bg-slate-200 text-slate-800 dark:bg-slate-600 dark:text-slate-300'}`}>
+                             {t(`status.${invoice.status.toLowerCase()}`)}
+                             {isOverdue && invoice.status !== 'OVERDUE' && ` (${t('status.overdue')})`}
+                         </span>
+                     </div>
+                     <div className="flex space-x-3">
+                         {invoice.status === 'DRAFT' && (
+                             <button 
+                                onClick={() => onSend(invoice, 'send')}
+                                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700"
+                             >
+                                 {t('sendInvoice.sendNow')}
+                             </button>
+                         )}
+                         {(invoice.status === 'SENT' || invoice.status === 'PARTIALLY_PAID') && !isOverdue && (
+                             <button 
+                                onClick={() => onSend(invoice, 'resend')}
+                                className="inline-flex items-center px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600"
+                             >
+                                 {t('sendInvoice.resend')}
+                             </button>
+                         )}
+                         {isOverdue && (
+                             <button 
+                                onClick={() => onSend(invoice, 'reminder')}
+                                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-amber-700"
+                             >
+                                 {t('sendInvoice.sendReminder')}
+                             </button>
+                         )}
+                     </div>
+                </div>
+
+                <div className="p-6 md:p-8 max-h-[70vh] overflow-y-auto">
                     {/* Invoice Content */}
                     <div id="invoice-to-print">
-                        <div className="invoice-preview p-6 md:p-8 bg-white text-gray-900 font-sans text-sm border border-gray-200 rounded-lg">
-                             <header className="invoice-header flex flex-col md:flex-row justify-between items-start pb-6 border-b">
-                                <div className="mb-4 md:mb-0">
-                                    {companyProfile.logo && <img src={companyProfile.logo} alt="Company Logo" className="company-logo max-h-20 mb-4" />}
-                                    <h1 className="text-3xl font-bold uppercase text-slate-800">{t('common.invoice')}</h1>
-                                    <p className="text-gray-500">#{invoice.invoiceNumber}</p>
-                                </div>
-                                <div className="w-full md:w-auto text-left md:text-right company-details">
-                                    <h2 className="text-xl font-semibold text-slate-700">{companyProfile.name}</h2>
-                                    <p className="text-gray-500">{companyProfile.address.street}</p>
-                                    <p className="text-gray-500">{companyProfile.address.city}, {companyProfile.address.state} {companyProfile.address.postalCode}</p>
-                                    {companyProfile.taxNumber && (
-                                        <div className="tax-details mt-1">
-                                            <p className="text-gray-500">{companyProfile.taxType}: {companyProfile.taxNumber}</p>
-                                        </div>
-                                    )}
-                                </div>
-                            </header>
-                             <section className="client-details grid grid-cols-1 md:grid-cols-2 gap-4 py-6">
-                                <div>
-                                    <h3 className="font-semibold text-gray-500 uppercase tracking-wider mb-2">{t('invoiceEditor.billTo')}</h3>
-                                    <p className="font-bold text-slate-700">{invoice.client.name}</p>
-                                    {invoice.client.address && <p>{invoice.client.address.street}</p>}
-                                    {invoice.client.address && <p>{invoice.client.address.city}, {invoice.client.address.state} {invoice.client.address.postalCode}</p>}
-                                </div>
-                                <div className="text-left md:text-right mt-4 md:mt-0">
-                                    <p><span className="font-semibold text-slate-600">{t('common.issueDate')}:</span> {formatDate(invoice.issueDate)}</p>
-                                    <p><span className="font-semibold text-slate-600">{t('common.dueDate')}:</span> {formatDate(invoice.dueDate)}</p>
-                                </div>
-                            </section>
-                            <div className="overflow-x-auto">
-                                <table className="invoice-items w-full text-left min-w-[500px]">
-                                    <thead>
-                                        <tr className="bg-slate-50">
-                                            <th className="p-3 font-semibold text-slate-600 uppercase">{t('common.description')}</th>
-                                            <th className="p-3 font-semibold text-slate-600 uppercase text-center">{t('common.quantityShort')}</th>
-                                            <th className="p-3 font-semibold text-slate-600 uppercase text-right">{t('common.unitPrice')}</th>
-                                            <th className="p-3 font-semibold text-slate-600 uppercase text-right">{t('common.total')}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {invoice.lineItems.map(item => (
-                                            <tr key={item.id} className="border-b border-slate-100">
-                                                <td className="p-3">{item.description}</td>
-                                                <td className="p-3 text-center">{item.quantity}</td>
-                                                <td className="p-3 text-right">{formatCurrency(item.unitPrice)}</td>
-                                                <td className="p-3 text-right">{formatCurrency(item.quantity * item.unitPrice)}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                            <footer className="invoice-footer flex justify-end pt-6">
-                                <div className="w-full max-w-sm">
-                                    <div className="flex justify-between py-2 text-slate-600"><span>{t('common.subtotal')}:</span><span>{formatCurrency(invoice.total)}</span></div>
-                                    <div className="flex justify-between py-2 text-slate-600"><span>{t('payments.paid')}:</span><span>-{formatCurrency(invoice.amountPaid)}</span></div>
-                                    <div className="flex justify-between py-3 font-bold text-lg text-slate-800 border-t mt-2"><span>{t('payments.balanceDue')}:</span><span>{formatCurrency(balanceDue)}</span></div>
-                                </div>
-                            </footer>
-                        </div>
+                        <InvoicePreview invoice={invoice} companyProfile={companyProfile} />
                     </div>
                     {/* Payment Section */}
-                    <div className="mt-8">
+                    <div className="mt-8 border-t border-slate-200 dark:border-slate-700 pt-6">
                         <h4 className="text-lg font-semibold mb-4 text-slate-800 dark:text-slate-200">{t('payments.paymentHistory')}</h4>
                         {invoice.paymentRecords.length > 0 ? (
                             <ul className="divide-y divide-slate-200 dark:divide-slate-700 border border-slate-200 dark:border-slate-700 rounded-md">
