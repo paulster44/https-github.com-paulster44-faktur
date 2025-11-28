@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { type Invoice, type Client, type Item, type CompanyProfile, type InvoiceStatus, type Expense } from './types';
 import { mockInvoices, mockClients, mockItems } from './services/geminiService';
@@ -14,6 +15,7 @@ import ReportsPage from './components/ReportsPage';
 import ReceiptList from './components/ReceiptList'; // Expenses Page
 import LoginScreen from './components/LoginScreen';
 import SendInvoiceModal from './components/SendInvoiceModal';
+import InvoiceDetailsModal from './components/InvoiceDetailsModal';
 import { Toaster, toast } from './components/Toaster';
 import { LanguageProvider, useLanguage } from './i18n/LanguageProvider';
 
@@ -32,8 +34,9 @@ const MainApp: React.FC = () => {
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
-  // Replaces draftInvoiceToSend with a richer context
+  // Modal States
   const [sendContext, setSendContext] = useState<{ invoice: Invoice, mode: SendMode } | null>(null);
+  const [viewingInvoice, setViewingInvoice] = useState<Invoice | null>(null);
   
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const { t } = useLanguage();
@@ -262,14 +265,26 @@ const MainApp: React.FC = () => {
     }
   }
 
-  const updateInvoicePayment = (invoiceId: string, updatedInvoiceData: Partial<Invoice>) => {
-    setInvoices(prev => prev.map(inv => inv.id === invoiceId ? {...inv, ...updatedInvoiceData} : inv));
+  const updateInvoice = (invoiceId: string, updatedInvoiceData: Partial<Invoice>) => {
+    setInvoices(prev => {
+        const nextInvoices = prev.map(inv => inv.id === invoiceId ? {...inv, ...updatedInvoiceData} : inv);
+        // If we are viewing this invoice, update the view state as well to reflect changes immediately
+        if (viewingInvoice && viewingInvoice.id === invoiceId) {
+            setViewingInvoice(nextInvoices.find(inv => inv.id === invoiceId) || null);
+        }
+        return nextInvoices;
+    });
   }
 
   const handleEditInvoice = (invoice: Invoice) => {
     setEditingInvoice(invoice);
     setCurrentView('create-invoice');
+    setViewingInvoice(null); // Close detail view if open
   };
+
+  const handleViewInvoice = (invoice: Invoice) => {
+      setViewingInvoice(invoice);
+  }
 
   const deleteInvoices = (invoiceIds: string[]) => {
     setInvoices(prevInvoices => prevInvoices.filter(invoice => !invoiceIds.includes(invoice.id)));
@@ -321,17 +336,25 @@ const MainApp: React.FC = () => {
 
     switch (currentView) {
       case 'home':
-        return <HomePage invoices={invoices} clients={clients} onNavigate={setCurrentView} />;
+        return <HomePage 
+            invoices={invoices} 
+            clients={clients} 
+            onNavigate={setCurrentView}
+            onEditInvoice={handleEditInvoice}
+            onViewInvoice={handleViewInvoice}
+            onSendInvoice={(inv) => handleInitiateSend(inv, 'send')}
+        />;
       case 'invoices':
         return <InvoicesPage 
             invoices={invoices} 
             onNavigate={setCurrentView} 
-            onUpdateInvoice={updateInvoicePayment} 
+            onUpdateInvoice={updateInvoice} 
             companyProfile={companyProfile} 
             onDeleteInvoices={deleteInvoices}
             onBulkMarkAsPaid={bulkMarkAsPaid}
             onEditInvoice={handleEditInvoice}
             onSendInvoice={handleInitiateSend}
+            onViewInvoice={handleViewInvoice}
         />;
       case 'reports':
         return <ReportsPage invoices={invoices} clients={clients} />;
@@ -353,7 +376,7 @@ const MainApp: React.FC = () => {
        case 'settings':
         return <SettingsPage companyProfile={companyProfile} onSave={handleSaveProfile} />;
       default:
-        return <HomePage invoices={invoices} clients={clients} onNavigate={setCurrentView} />;
+        return <HomePage invoices={invoices} clients={clients} onNavigate={setCurrentView} onViewInvoice={handleViewInvoice} onEditInvoice={handleEditInvoice} onSendInvoice={(inv) => handleInitiateSend(inv, 'send')} />;
     }
   };
 
@@ -384,6 +407,19 @@ const MainApp: React.FC = () => {
             </div>
         </main>
       </div>
+      
+      {/* Global Invoice Viewer Modal */}
+      {viewingInvoice && companyProfile && !sendContext && (
+          <InvoiceDetailsModal 
+            invoice={viewingInvoice}
+            companyProfile={companyProfile}
+            onClose={() => setViewingInvoice(null)}
+            onUpdateInvoice={updateInvoice}
+            onEdit={handleEditInvoice}
+            onSend={handleInitiateSend}
+          />
+      )}
+
       <Toaster />
     </div>
   );

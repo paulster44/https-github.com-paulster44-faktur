@@ -1,13 +1,18 @@
+
 import React, { useMemo } from 'react';
 import { type Invoice, type Client, type InvoiceStatus } from '../types';
 import { PlusIcon, EyeIcon, PencilIcon, DocumentTextIcon, CheckIcon, ClockIcon, ChartBarIcon, UsersIcon, ReceiptIcon, ArrowDownTrayIcon } from './icons';
 import { type View } from '../App';
 import { useLanguage } from '../i18n/LanguageProvider';
+import Tooltip from './Tooltip';
 
 interface HomePageProps {
   invoices: Invoice[];
   clients: Client[];
   onNavigate: (view: View) => void;
+  onEditInvoice: (invoice: Invoice) => void;
+  onViewInvoice: (invoice: Invoice) => void;
+  onSendInvoice: (invoice: Invoice) => void;
 }
 
 const formatCurrency = (amount: number) => {
@@ -116,7 +121,7 @@ const StatusPill: React.FC<{ status: InvoiceStatus }> = ({ status }) => {
     );
 };
 
-const HomePage: React.FC<HomePageProps> = ({ invoices, clients, onNavigate }) => {
+const HomePage: React.FC<HomePageProps> = ({ invoices, clients, onNavigate, onEditInvoice, onViewInvoice, onSendInvoice }) => {
     const { t } = useLanguage();
     
     // Calculate stats matching the screenshot logic
@@ -265,9 +270,15 @@ const HomePage: React.FC<HomePageProps> = ({ invoices, clients, onNavigate }) =>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center space-x-3 text-gray-400">
-                                            <button className="hover:text-gray-600"><EyeIcon className="h-4 w-4" /></button>
-                                            <button className="hover:text-gray-600"><PencilIcon className="h-4 w-4" /></button>
-                                            <button className="hover:text-gray-600"><DocumentTextIcon className="h-4 w-4" /></button>
+                                            <Tooltip content={t('common.preview')}>
+                                                <button onClick={() => onViewInvoice(invoice)} className="hover:text-gray-600"><EyeIcon className="h-4 w-4" /></button>
+                                            </Tooltip>
+                                            <Tooltip content={t('common.edit')}>
+                                                <button onClick={() => onEditInvoice(invoice)} className="hover:text-blue-600"><PencilIcon className="h-4 w-4" /></button>
+                                            </Tooltip>
+                                            <Tooltip content={t('sendInvoice.title')}>
+                                                <button onClick={() => onSendInvoice(invoice)} className="hover:text-green-600"><DocumentTextIcon className="h-4 w-4" /></button>
+                                            </Tooltip>
                                         </div>
                                     </td>
                                 </tr>

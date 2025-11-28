@@ -3,7 +3,6 @@ import React, { useState, useMemo } from 'react';
 import { type Invoice, type InvoiceStatus, type CompanyProfile } from '../types';
 import { PlusIcon, TrashIcon, CheckCircleIcon, ArrowDownTrayIcon, EyeIcon, PencilIcon, DocumentTextIcon } from './icons';
 import { type View, type SendMode } from '../App';
-import InvoiceDetailsModal from './InvoiceDetailsModal';
 import ConfirmationModal from './ConfirmationModal';
 import { useLanguage } from '../i18n/LanguageProvider';
 import Tooltip from './Tooltip';
@@ -17,6 +16,7 @@ interface InvoicesPageProps {
     onBulkMarkAsPaid: (invoiceIds: string[]) => void;
     onEditInvoice: (invoice: Invoice) => void;
     onSendInvoice: (invoice: Invoice, mode: SendMode) => void;
+    onViewInvoice: (invoice: Invoice) => void;
     companyProfile: CompanyProfile;
 }
 
@@ -51,18 +51,12 @@ const StatusPill: React.FC<{ status: InvoiceStatus }> = ({ status }) => {
     );
 };
 
-const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpdateInvoice, onDeleteInvoices, onBulkMarkAsPaid, onEditInvoice, onSendInvoice, companyProfile }) => {
-    const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
+const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpdateInvoice, onDeleteInvoices, onBulkMarkAsPaid, onEditInvoice, onSendInvoice, onViewInvoice, companyProfile }) => {
     const [selectedInvoices, setSelectedInvoices] = useState<string[]>([]);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [statusFilter, setStatusFilter] = useState<InvoiceStatus | 'ALL'>('ALL');
     const [searchTerm, setSearchTerm] = useState('');
     const { t } = useLanguage();
-
-    // Derived state for the modal - ensures reactivity
-    const selectedInvoice = useMemo(() => {
-        return invoices.find(inv => inv.id === selectedInvoiceId) || null;
-    }, [invoices, selectedInvoiceId]);
 
     const filteredInvoices = useMemo(() => {
         return invoices.filter(inv => {
@@ -114,8 +108,6 @@ const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpd
         ]);
         exportToCSV('invoices.csv', headers, rows);
     };
-
-    const handleCloseModal = () => setSelectedInvoiceId(null);
 
     const BulkActionsBar = () => (
         <div className="absolute top-0 left-1/2 -translate-x-1/2 mt-4 z-20 w-full max-w-fit animate-fade-in-down">
@@ -222,7 +214,7 @@ const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpd
                                 <tr 
                                     key={invoice.id} 
                                     className={`${selectedInvoices.includes(invoice.id) ? 'bg-blue-50/30' : ''} hover:bg-gray-50 transition-colors`}
-                                    onClick={() => setSelectedInvoiceId(invoice.id)}
+                                    onClick={() => onViewInvoice(invoice)}
                                 >
                                     <td className="px-6 py-4 whitespace-nowrap" onClick={e => e.stopPropagation()}>
                                         <input
@@ -240,7 +232,7 @@ const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpd
                                     <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={e => e.stopPropagation()}>
                                         <div className="flex items-center space-x-3 text-gray-400">
                                             <Tooltip content={t('common.preview')}>
-                                                <button onClick={() => setSelectedInvoiceId(invoice.id)} className="hover:text-gray-600"><EyeIcon className="h-4 w-4" /></button>
+                                                <button onClick={() => onViewInvoice(invoice)} className="hover:text-gray-600"><EyeIcon className="h-4 w-4" /></button>
                                             </Tooltip>
                                             <Tooltip content={t('common.edit')}>
                                                 <button onClick={() => onEditInvoice(invoice)} className="hover:text-blue-600"><PencilIcon className="h-4 w-4" /></button>
@@ -267,16 +259,6 @@ const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpd
                 </div>
             </div>
 
-             {selectedInvoice && (
-                <InvoiceDetailsModal 
-                    invoice={selectedInvoice}
-                    onClose={handleCloseModal}
-                    onUpdateInvoice={onUpdateInvoice}
-                    companyProfile={companyProfile}
-                    onEdit={onEditInvoice}
-                    onSend={onSendInvoice}
-                />
-            )}
             <ConfirmationModal
                 isOpen={isConfirmModalOpen}
                 onClose={() => setIsConfirmModalOpen(false)}
