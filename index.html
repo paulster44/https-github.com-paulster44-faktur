@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -18,23 +19,61 @@
               sans: ['Inter', 'sans-serif'],
             },
             colors: {
+              // Forced High-Contrast Palette
+              // We shift the scale down to ensure borders (usually 200/300) are distinct and dark.
               gray: {
+                50: '#F9FAFB',  // Lightest Background
+                100: '#F3F4F6', // Light Background
+                200: '#CBD5E1', // Dividers / Disabled (Slate 300 equivalent)
+                300: '#94A3B8', // Input Borders - STRONG GREY (Slate 400 equivalent)
+                400: '#64748B', // Icons / Placeholders (Slate 500 equivalent)
+                500: '#475569', // Secondary Text (Slate 600)
+                600: '#334155', // Primary Text (Slate 700)
+                700: '#1E293B', // Headers (Slate 800)
+                800: '#0F172A', // Dark Containers (Slate 900)
+                900: '#020617', // Black (Slate 950)
+              },
+              // Map Slate to this same high-contrast gray scale for consistency
+              slate: {
                 50: '#F9FAFB',
                 100: '#F3F4F6',
-                200: '#E5E7EB',
-                300: '#D1D5DB',
-                400: '#9CA3AF',
-                500: '#6B7280',
-                600: '#4B5563',
-                700: '#374151',
-                800: '#1F2937',
-                900: '#111827',
+                200: '#CBD5E1',
+                300: '#94A3B8', // Strong borders for inputs
+                400: '#64748B',
+                500: '#475569',
+                600: '#334155',
+                700: '#1E293B',
+                800: '#0F172A',
+                900: '#020617',
               }
             }
           }
         }
       }
     </script>
+    <style>
+        /* Force calendar icon visibility in WebKit browsers */
+        ::-webkit-calendar-picker-indicator {
+            filter: invert(0.4); /* Dark grey icon */
+            opacity: 1;
+            cursor: pointer;
+        }
+        /* Ensure inputs have a clean background to contrast with the darker borders */
+        input, select, textarea {
+            background-color: #ffffff;
+        }
+        /* Fix for read-only inputs to look distinct */
+        input[readonly], input[disabled] {
+            background-color: #F3F4F6; /* Gray 100 */
+            color: #475569; /* Gray 500 */
+            border-color: #CBD5E1; /* Gray 200 */
+        }
+        /* Explicitly darken placeholder text */
+        ::placeholder {
+            color: #64748B !important; /* Gray 400 */
+            opacity: 1;
+        }
+    </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script type="importmap">
@@ -49,7 +88,7 @@
 }
 </script>
 </head>
-  <body class="bg-gray-50 text-gray-900">
+  <body class="bg-gray-50 text-gray-900 antialiased">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

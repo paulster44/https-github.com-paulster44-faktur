@@ -138,29 +138,29 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ clients, items, onSave, o
                  </div>
              </div>
 
-             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+             <div className="bg-white rounded-xl shadow-sm border border-gray-300 overflow-hidden">
                  
                  {/* Top Form Section */}
-                 <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-12 border-b border-gray-100">
+                 <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-12 border-b border-gray-300">
                      {/* Left: Invoice Details */}
                      <div>
                          <h2 className="text-lg font-bold text-gray-900 mb-6">Invoice Details</h2>
                          <div className="space-y-5">
                              <div>
-                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Invoice Number</label>
-                                 <input type="text" disabled value={displayInvoiceNumber} className="block w-full rounded-md border-gray-200 bg-gray-50 text-gray-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 px-3" />
+                                 <label className="block text-sm font-bold text-gray-700 mb-1.5">Invoice Number</label>
+                                 <input type="text" disabled value={displayInvoiceNumber} className="block w-full rounded-md border-gray-400 bg-gray-100 text-gray-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 px-3" />
                              </div>
                              <div className="grid grid-cols-2 gap-5">
                                  <div>
-                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Issue Date</label>
+                                     <label className="block text-sm font-bold text-gray-700 mb-1.5">Issue Date</label>
                                      <div className="relative">
-                                         <input type="date" value={issueDate} onChange={e => setIssueDate(e.target.value)} className="block w-full rounded-md border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 px-3 bg-white" />
+                                         <input type="date" value={issueDate} onChange={e => setIssueDate(e.target.value)} className="block w-full rounded-md border-gray-400 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 px-3 bg-white text-gray-900" />
                                      </div>
                                  </div>
                                  <div>
-                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Due Date</label>
+                                     <label className="block text-sm font-bold text-gray-700 mb-1.5">Due Date</label>
                                      <div className="relative">
-                                         <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className="block w-full rounded-md border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 px-3 bg-white" />
+                                         <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className="block w-full rounded-md border-gray-400 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 px-3 bg-white text-gray-900" />
                                      </div>
                                  </div>
                              </div>
@@ -172,11 +172,11 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ clients, items, onSave, o
                          <h2 className="text-lg font-bold text-gray-900 mb-6">Client Details</h2>
                          <div className="space-y-5">
                              <div>
-                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Select Client</label>
+                                 <label className="block text-sm font-bold text-gray-700 mb-1.5">Select Client</label>
                                  <select 
                                     value={selectedClientId} 
                                     onChange={e => setSelectedClientId(e.target.value)}
-                                    className="block w-full rounded-md border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 px-3 bg-white"
+                                    className="block w-full rounded-md border-gray-400 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 px-3 bg-white text-gray-900"
                                 >
                                     <option value="">Choose a client...</option>
                                     {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -184,22 +184,22 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ clients, items, onSave, o
                              </div>
                              <div className="grid grid-cols-2 gap-5">
                                  <div>
-                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Client Name</label>
-                                     <input type="text" readOnly value={clients.find(c => c.id === selectedClientId)?.name || ''} className="block w-full rounded-md border-gray-200 bg-gray-50 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 px-3" />
+                                     <label className="block text-sm font-bold text-gray-700 mb-1.5">Client Name</label>
+                                     <input type="text" readOnly value={clients.find(c => c.id === selectedClientId)?.name || ''} className="block w-full rounded-md border-gray-400 bg-gray-50 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 px-3 text-gray-700" />
                                  </div>
                                  <div>
-                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Billing Address</label>
-                                     <input type="text" readOnly value={clients.find(c => c.id === selectedClientId)?.address?.city || ''} className="block w-full rounded-md border-gray-200 bg-gray-50 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 px-3" />
+                                     <label className="block text-sm font-bold text-gray-700 mb-1.5">Billing Address</label>
+                                     <input type="text" readOnly value={clients.find(c => c.id === selectedClientId)?.address?.city || ''} className="block w-full rounded-md border-gray-400 bg-gray-50 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 px-3 text-gray-700" />
                                  </div>
                              </div>
                              <div className="grid grid-cols-2 gap-5">
                                  <div>
-                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Contact Person</label>
-                                     <input type="text" readOnly value={clients.find(c => c.id === selectedClientId)?.contactName || ''} className="block w-full rounded-md border-gray-200 bg-gray-50 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 px-3" />
+                                     <label className="block text-sm font-bold text-gray-700 mb-1.5">Contact Person</label>
+                                     <input type="text" readOnly value={clients.find(c => c.id === selectedClientId)?.contactName || ''} className="block w-full rounded-md border-gray-400 bg-gray-50 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 px-3 text-gray-700" />
                                  </div>
                                  <div>
-                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
-                                     <input type="text" readOnly value={clients.find(c => c.id === selectedClientId)?.email || ''} className="block w-full rounded-md border-gray-200 bg-gray-50 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 px-3" />
+                                     <label className="block text-sm font-bold text-gray-700 mb-1.5">Email</label>
+                                     <input type="text" readOnly value={clients.find(c => c.id === selectedClientId)?.email || ''} className="block w-full rounded-md border-gray-400 bg-gray-50 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2.5 px-3 text-gray-700" />
                                  </div>
                              </div>
                          </div>
@@ -209,9 +209,9 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ clients, items, onSave, o
                  {/* Line Items Section */}
                  <div className="p-8">
                      <h2 className="text-lg font-bold text-gray-900 mb-6">Line Items</h2>
-                     <div className="bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
-                         <table className="min-w-full divide-y divide-gray-200">
-                             <thead className="bg-gray-100/50">
+                     <div className="bg-gray-50 rounded-lg overflow-hidden border border-gray-300">
+                         <table className="min-w-full divide-y divide-gray-300">
+                             <thead className="bg-gray-100">
                                  <tr>
                                      <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-[20%]">Item</th>
                                      <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-[35%]">Description</th>
@@ -221,13 +221,13 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ clients, items, onSave, o
                                      <th scope="col" className="relative px-6 py-3 w-[5%]"><span className="sr-only">Delete</span></th>
                                  </tr>
                              </thead>
-                             <tbody className="bg-white divide-y divide-gray-200">
+                             <tbody className="bg-white divide-y divide-gray-300">
                                  {lineItems.map((item, index) => (
                                      <tr key={item.id}>
                                          <td className="px-6 py-4 align-top">
                                             <select 
                                                 onChange={e => handleItemSelect(index, e.target.value)} 
-                                                className="block w-full rounded-md border border-gray-300 bg-white text-sm focus:ring-blue-500 focus:border-blue-500 py-2 px-3 shadow-sm"
+                                                className="block w-full rounded-md border border-gray-400 bg-white text-sm focus:ring-blue-500 focus:border-blue-500 py-2 px-3 shadow-sm text-gray-900"
                                             >
                                                 <option value="">Select...</option>
                                                 {items.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
@@ -238,7 +238,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ clients, items, onSave, o
                                                 type="text" 
                                                 value={item.description} 
                                                 onChange={e => handleLineItemChange(index, 'description', e.target.value)}
-                                                className="block w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-gray-900 placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500 sm:text-sm shadow-sm" 
+                                                className="block w-full rounded-md border border-gray-400 bg-white py-2 px-3 text-gray-900 placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500 sm:text-sm shadow-sm" 
                                                 placeholder="Item description" 
                                              />
                                          </td>
@@ -247,7 +247,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ clients, items, onSave, o
                                                 type="number" 
                                                 value={item.quantity} 
                                                 onChange={e => handleLineItemChange(index, 'quantity', e.target.value)}
-                                                className="block w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-gray-900 placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-center shadow-sm" 
+                                                className="block w-full rounded-md border border-gray-400 bg-white py-2 px-3 text-gray-900 placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-center shadow-sm" 
                                              />
                                          </td>
                                          <td className="px-6 py-4 align-top text-right">
@@ -255,7 +255,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ clients, items, onSave, o
                                                 type="number" 
                                                 value={item.unitPrice} 
                                                 onChange={e => handleLineItemChange(index, 'unitPrice', e.target.value)}
-                                                className="block w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-gray-900 placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-right shadow-sm" 
+                                                className="block w-full rounded-md border border-gray-400 bg-white py-2 px-3 text-gray-900 placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-right shadow-sm" 
                                              />
                                          </td>
                                          <td className="px-6 py-4 align-top text-right font-medium text-gray-900 pt-3">
@@ -270,10 +270,10 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ clients, items, onSave, o
                                  ))}
                              </tbody>
                          </table>
-                         <div className="p-4 border-t border-gray-200 bg-gray-50">
+                         <div className="p-4 border-t border-gray-300 bg-gray-50">
                              <button 
                                 onClick={addLineItem}
-                                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                              >
                                  <PlusIcon className="-ml-1 mr-2 h-4 w-4" />
                                  Add Line Item
@@ -297,7 +297,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ clients, items, onSave, o
                              <span>Discount:</span>
                              <span className="font-semibold">$0.00</span>
                          </div>
-                         <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+                         <div className="flex justify-between items-center pt-4 border-t border-gray-300">
                              <span className="text-xl font-bold text-gray-900">Total:</span>
                              <span className="text-2xl font-bold text-gray-900">${finalTotal.toFixed(2)}</span>
                          </div>
@@ -305,12 +305,12 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ clients, items, onSave, o
                  </div>
 
                  {/* Terms & Notes */}
-                 <div className="p-8 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-8">
+                 <div className="p-8 border-t border-gray-300 grid grid-cols-1 md:grid-cols-2 gap-8">
                      <div>
                          <label className="block text-sm font-bold text-gray-700 mb-2">Payment Terms & Notes</label>
                          <textarea 
                             rows={4} 
-                            className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md bg-white" 
+                            className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-400 rounded-md bg-white text-gray-900" 
                             placeholder="Net 30. Please make checks payable to InvoiceFlow Inc."
                         />
                      </div>
@@ -318,7 +318,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ clients, items, onSave, o
              </div>
 
              {/* Bottom Sticky Action Bar */}
-             <div className="fixed bottom-0 left-0 right-0 md:left-64 bg-white border-t border-gray-200 p-4 shadow-lg z-20">
+             <div className="fixed bottom-0 left-0 right-0 md:left-64 bg-white border-t border-gray-300 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-20">
                  <div className="max-w-6xl mx-auto flex justify-between items-center">
                     <button 
                         onClick={() => { if (selectedClientId) setIsPreviewOpen(true); else alert("Select client first"); }}
@@ -367,4 +367,3 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ clients, items, onSave, o
 };
 
 export default InvoiceEditor;
-    
