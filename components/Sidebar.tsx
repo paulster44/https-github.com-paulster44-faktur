@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { DocumentTextIcon, HomeIcon, UsersIcon, CubeIcon, CogIcon, ChartBarIcon, ReceiptIcon, XIcon, GlobeIcon } from './icons';
 import { type View } from '../App';
@@ -68,7 +69,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, isOpen, onCl
                         <div className="bg-blue-600 p-1.5 rounded-lg mr-3 shadow-sm">
                             <DocumentTextIcon className="h-5 w-5 text-white" />
                         </div>
-                        <span className="text-xl font-bold text-gray-900 tracking-tight">InvoicePro</span>
+                        <span className="text-xl font-bold text-gray-900 tracking-tight">Faktur</span>
                     </div>
                     <button onClick={onClose} className="md:hidden text-gray-500">
                         <XIcon className="h-6 w-6" />
