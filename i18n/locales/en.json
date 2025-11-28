@@ -29,6 +29,7 @@
         "close": "Close",
         "print": "Print",
         "export": "Export PDF",
+        "preview": "Preview",
         "description": "Description",
         "unitPrice": "Unit Price",
         "companyName": "Company Name",
@@ -142,7 +143,8 @@
         "selectClientAlert": "Please select a client.",
         "selectItem": "Select Item",
         "itemDescriptionPlaceholder": "Item description",
-        "addLineItem": "Add Line Item"
+        "addLineItem": "Add Line Item",
+        "previewTitle": "Invoice Preview"
     },
     "sendInvoice": {
         "title": "Send Invoice",
@@ -221,6 +223,9 @@
         "noteOptional": "Note (Optional)",
         "savePayment": "Save Payment",
         "invalidAmount": "Payment must be between $0.01 and {{amount}}.",
+        "markAsUnpaid": "Mark as Unpaid",
+        "markUnpaidConfirmTitle": "Mark Invoice as Unpaid?",
+        "markUnpaidConfirmMessage": "Are you sure you want to mark this invoice as unpaid? This will remove all payment records and reset the status to Sent or Overdue.",
         "methods": {
             "bankTransfer": "Bank Transfer",
             "creditCard": "Credit Card",
@@ -245,6 +250,7 @@
         "invoiceSent": "Invoice sent successfully!",
         "reminderSent": "Reminder sent successfully!",
         "paymentRecorded": "Payment recorded successfully!",
+        "invoiceMarkedUnpaid": "Invoice marked as unpaid.",
         "invoicesDeleted": "{{count}} invoices deleted successfully.",
         "invoicesMarkedAsPaid": "{{count}} invoices marked as paid.",
         "exporting": "Generating file...",
@@ -256,5 +262,18 @@
         "paid": "Paid",
         "overdue": "Overdue",
         "partially_paid": "Partially Paid"
+    },
+    "designStudio": {
+        "title": "Design Studio",
+        "description": "Generate a custom CSS for your invoice template using AI.",
+        "promptPlaceholder": "Describe the style you want (e.g., 'Modern blue theme with rounded corners' or 'Classic black and white professional look').",
+        "promptExample": "Minimalist black and white design with bold headers",
+        "includeBackground": "Include Background",
+        "generateButton": "Generate Design",
+        "generatedCss": "Generated CSS",
+        "livePreview": "Live Preview",
+        "logoAlt": "Company Logo",
+        "yourCompany": "Your Company",
+        "thankYou": "Thank you for your business!"
     }
 }

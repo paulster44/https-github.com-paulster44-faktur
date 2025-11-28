@@ -29,6 +29,7 @@
         "close": "Fermer",
         "print": "Imprimer",
         "export": "Exporter en PDF",
+        "preview": "Aperçu",
         "description": "Description",
         "unitPrice": "Prix unitaire",
         "companyName": "Nom de l'entreprise",
@@ -103,7 +104,8 @@
         "selectClientAlert": "Veuillez sélectionner un client.",
         "selectItem": "Sélectionner un article",
         "itemDescriptionPlaceholder": "Description de l'article",
-        "addLineItem": "Ajouter une ligne"
+        "addLineItem": "Ajouter une ligne",
+        "previewTitle": "Aperçu de la facture"
     },
     "sendInvoice": {
         "title": "Envoyer la facture",
@@ -182,6 +184,9 @@
         "noteOptional": "Note (facultatif)",
         "savePayment": "Enregistrer le paiement",
         "invalidAmount": "Le paiement doit être compris entre 0,01 $ et {{amount}}.",
+        "markAsUnpaid": "Marquer comme impayée",
+        "markUnpaidConfirmTitle": "Marquer la facture comme impayée ?",
+        "markUnpaidConfirmMessage": "Êtes-vous sûr de vouloir marquer cette facture comme impayée ? Cela supprimera tous les enregistrements de paiement et réinitialisera le statut à Envoyé ou En retard.",
         "methods": {
             "bankTransfer": "Virement bancaire",
             "creditCard": "Carte de crédit",
@@ -206,6 +211,7 @@
         "invoiceSent": "Facture envoyée avec succès !",
         "reminderSent": "Rappel envoyé avec succès !",
         "paymentRecorded": "Paiement enregistré avec succès !",
+        "invoiceMarkedUnpaid": "Facture marquée comme impayée.",
         "invoicesDeleted": "{{count}} factures supprimées avec succès.",
         "invoicesMarkedAsPaid": "{{count}} factures marquées comme payées.",
         "exporting": "Génération du fichier...",

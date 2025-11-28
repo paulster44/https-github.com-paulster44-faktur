@@ -2,11 +2,13 @@
 import React, { useState } from 'react';
 import { type Invoice, type PaymentRecord, type CompanyProfile, type InvoiceStatus } from '../types';
 import { type SendMode } from '../App';
-import { XIcon, PlusIcon, PencilIcon, PrinterIcon, ArrowDownTrayIcon, CheckCircleIcon } from './icons';
+import { XIcon, PlusIcon, PencilIcon, PrinterIcon, ArrowDownTrayIcon } from './icons';
 import { toast } from './Toaster';
 import { useLanguage } from '../i18n/LanguageProvider';
 import { templates } from './templates';
 import InvoicePreview from './InvoicePreview';
+import ConfirmationModal from './ConfirmationModal';
+import Tooltip from './Tooltip';
 
 interface InvoiceDetailsModalProps {
     invoice: Invoice;
@@ -25,6 +27,7 @@ const today = new Date().toISOString().split('T')[0];
 const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ invoice, companyProfile, onClose, onUpdateInvoice, onEdit, onSend }) => {
     const [isPaymentFormVisible, setIsPaymentFormVisible] = useState(false);
     const [isPrinting, setIsPrinting] = useState(false);
+    const [isUnpaidConfirmOpen, setIsUnpaidConfirmOpen] = useState(false);
     const [payment, setPayment] = useState<Omit<PaymentRecord, 'id'>>({
         amount: invoice.total - invoice.amountPaid,
         date: today,
@@ -60,6 +63,23 @@ const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ invoice, comp
         onUpdateInvoice(invoice.id, updatedData);
         toast.success(t('toasts.paymentRecorded'));
         setIsPaymentFormVisible(false);
+    };
+
+    const handleMarkAsUnpaid = () => {
+        setIsUnpaidConfirmOpen(true);
+    };
+
+    const confirmMarkAsUnpaid = () => {
+        const newStatus: InvoiceStatus = new Date(invoice.dueDate) < new Date() ? 'OVERDUE' : 'SENT';
+        
+        onUpdateInvoice(invoice.id, {
+            status: newStatus,
+            amountPaid: 0,
+            paymentRecords: [] // Clear records
+        });
+        
+        toast.success(t('toasts.invoiceMarkedUnpaid'));
+        setIsUnpaidConfirmOpen(false);
     };
 
     const selectedTemplate = templates.find(t => t.id === companyProfile.template) || templates[0];
@@ -123,15 +143,21 @@ const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ invoice, comp
                 <div className="p-5 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
                     <div className="flex items-center space-x-2">
                         <h3 className="text-xl font-semibold">{t('common.invoice')} #{invoice.invoiceNumber}</h3>
-                         <button onClick={() => onEdit(invoice)} className="p-2 text-slate-500 hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400" aria-label={t('common.edit')}>
-                            <PencilIcon className="h-5 w-5" />
-                        </button>
-                        <button onClick={handlePrint} className="p-2 text-slate-500 hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400" aria-label={t('common.print')}>
-                            <PrinterIcon className="h-5 w-5" />
-                        </button>
-                        <button onClick={handleExportPdf} className="p-2 text-slate-500 hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400" aria-label={t('common.export')}>
-                            <ArrowDownTrayIcon className="h-5 w-5" />
-                        </button>
+                         <Tooltip content={t('common.edit')}>
+                            <button onClick={() => onEdit(invoice)} className="p-2 text-slate-500 hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400" aria-label={t('common.edit')}>
+                                <PencilIcon className="h-5 w-5" />
+                            </button>
+                        </Tooltip>
+                        <Tooltip content={t('common.print')}>
+                            <button onClick={handlePrint} className="p-2 text-slate-500 hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400" aria-label={t('common.print')}>
+                                <PrinterIcon className="h-5 w-5" />
+                            </button>
+                        </Tooltip>
+                        <Tooltip content={t('common.export')}>
+                            <button onClick={handleExportPdf} className="p-2 text-slate-500 hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400" aria-label={t('common.export')}>
+                                <ArrowDownTrayIcon className="h-5 w-5" />
+                            </button>
+                        </Tooltip>
                     </div>
                     <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700" aria-label={t('common.close')}>
                         <XIcon className="h-6 w-6 text-slate-500" />
@@ -175,6 +201,15 @@ const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ invoice, comp
                              >
                                  {t('sendInvoice.sendReminder')}
                              </button>
+                         )}
+                         
+                         {(invoice.status === 'PAID' || invoice.status === 'PARTIALLY_PAID') && (
+                            <button
+                                onClick={handleMarkAsUnpaid}
+                                className="inline-flex items-center px-4 py-2 border border-red-200 dark:border-red-800 rounded-md shadow-sm text-sm font-medium text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            >
+                                {t('payments.markAsUnpaid')}
+                            </button>
                          )}
                      </div>
                 </div>
@@ -247,6 +282,14 @@ const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({ invoice, comp
                     </div>
                 </div>
             </div>
+            
+             <ConfirmationModal
+                isOpen={isUnpaidConfirmOpen}
+                onClose={() => setIsUnpaidConfirmOpen(false)}
+                onConfirm={confirmMarkAsUnpaid}
+                title={t('payments.markUnpaidConfirmTitle')}
+                message={t('payments.markUnpaidConfirmMessage')}
+            />
         </div>
     );
 };

@@ -9,6 +9,7 @@ import { analyzeReceipt } from '../services/geminiService';
 import { toast } from './Toaster';
 import { useLanguage } from '../i18n/LanguageProvider';
 import { exportToCSV } from '../utils/exportHelpers';
+import Tooltip from './Tooltip';
 
 interface ReceiptListProps {
     expenses: Expense[];
@@ -230,12 +231,16 @@ const ReceiptList: React.FC<ReceiptListProps> = ({ expenses, onAddExpense, onUpd
                                                         )}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                        <button onClick={() => handleEdit(expense)} className="text-sky-600 hover:text-sky-900 dark:text-sky-400 dark:hover:text-sky-300 mr-3">
-                                                            <PencilIcon className="h-4 w-4" />
-                                                        </button>
-                                                        <button onClick={() => handleDelete(expense.id)} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
-                                                            <TrashIcon className="h-4 w-4" />
-                                                        </button>
+                                                        <Tooltip content={t('common.edit')}>
+                                                            <button onClick={() => handleEdit(expense)} className="text-sky-600 hover:text-sky-900 dark:text-sky-400 dark:hover:text-sky-300 mr-3">
+                                                                <PencilIcon className="h-4 w-4" />
+                                                            </button>
+                                                        </Tooltip>
+                                                        <Tooltip content={t('common.delete')}>
+                                                            <button onClick={() => handleDelete(expense.id)} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
+                                                                <TrashIcon className="h-4 w-4" />
+                                                            </button>
+                                                        </Tooltip>
                                                     </td>
                                                 </tr>
                                             ))}

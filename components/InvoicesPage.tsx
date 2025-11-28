@@ -6,6 +6,7 @@ import { type View, type SendMode } from '../App';
 import InvoiceDetailsModal from './InvoiceDetailsModal';
 import ConfirmationModal from './ConfirmationModal';
 import { useLanguage } from '../i18n/LanguageProvider';
+import Tooltip from './Tooltip';
 
 interface InvoicesPageProps {
     invoices: Invoice[];
@@ -198,14 +199,16 @@ const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpd
         <div className="absolute top-0 left-1/2 -translate-x-1/2 mt-4 z-20 w-full max-w-fit animate-fade-in-down">
             <div className="flex items-center space-x-2 bg-white dark:bg-slate-700 shadow-lg rounded-full px-3 py-2">
                 <span className="text-sm font-medium text-slate-700 dark:text-slate-200 px-2">{t('invoices.selected', { count: selectedInvoices.length })}</span>
-                <button onClick={handleBulkPaid} className="inline-flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-600 px-3 py-1.5 text-sm font-medium text-slate-800 dark:text-slate-100 shadow-sm hover:bg-slate-200 dark:hover:bg-slate-500">
-                    <CheckCircleIcon className="mr-2 h-4 w-4 text-green-500" />
-                    {t('invoices.markAsPaid')}
-                </button>
-                <button onClick={() => setIsConfirmModalOpen(true)} className="inline-flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-600 px-3 py-1.5 text-sm font-medium text-slate-800 dark:text-slate-100 shadow-sm hover:bg-slate-200 dark:hover:bg-slate-500">
-                    <TrashIcon className="mr-2 h-4 w-4 text-red-500" />
-                    {t('common.delete')}
-                </button>
+                <Tooltip content={t('invoices.markAsPaid')}>
+                    <button onClick={handleBulkPaid} className="inline-flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-600 px-3 py-1.5 text-sm font-medium text-slate-800 dark:text-slate-100 shadow-sm hover:bg-slate-200 dark:hover:bg-slate-500">
+                        <CheckCircleIcon className="h-4 w-4 text-green-500" />
+                    </button>
+                </Tooltip>
+                <Tooltip content={t('common.delete')}>
+                    <button onClick={() => setIsConfirmModalOpen(true)} className="inline-flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-600 px-3 py-1.5 text-sm font-medium text-slate-800 dark:text-slate-100 shadow-sm hover:bg-slate-200 dark:hover:bg-slate-500">
+                        <TrashIcon className="h-4 w-4 text-red-500" />
+                    </button>
+                </Tooltip>
             </div>
         </div>
     );

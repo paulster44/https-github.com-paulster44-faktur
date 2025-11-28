@@ -29,6 +29,7 @@
         "close": "Cerrar",
         "print": "Imprimir",
         "export": "Exportar a PDF",
+        "preview": "Vista previa",
         "description": "Descripción",
         "unitPrice": "Precio unitario",
         "companyName": "Nombre de la empresa",
@@ -103,7 +104,8 @@
         "selectClientAlert": "Por favor, seleccione un cliente.",
         "selectItem": "Seleccionar artículo",
         "itemDescriptionPlaceholder": "Descripción del artículo",
-        "addLineItem": "Añadir línea"
+        "addLineItem": "Añadir línea",
+        "previewTitle": "Vista previa de la factura"
     },
     "sendInvoice": {
         "title": "Enviar factura",
@@ -182,6 +184,9 @@
         "noteOptional": "Nota (opcional)",
         "savePayment": "Guardar pago",
         "invalidAmount": "El pago debe estar entre 0,01 $ y {{amount}}.",
+        "markAsUnpaid": "Marcar como no pagada",
+        "markUnpaidConfirmTitle": "¿Marcar factura como no pagada?",
+        "markUnpaidConfirmMessage": "¿Está seguro de que desea marcar esta factura como no pagada? Esto eliminará todos los registros de pago y restablecerá el estado a Enviada o Vencida.",
         "methods": {
             "bankTransfer": "Transferencia bancaria",
             "creditCard": "Tarjeta de crédito",
@@ -206,6 +211,7 @@
         "invoiceSent": "¡Factura enviada con éxito!",
         "reminderSent": "¡Recordatorio enviado con éxito!",
         "paymentRecorded": "¡Pago registrado con éxito!",
+        "invoiceMarkedUnpaid": "Factura marcada como no pagada.",
         "invoicesDeleted": "{{count}} facturas eliminadas con éxito.",
         "invoicesMarkedAsPaid": "{{count}} facturas marcadas como pagadas.",
         "exporting": "Generando archivo...",

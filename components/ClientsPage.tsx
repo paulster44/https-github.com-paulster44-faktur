@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { type Client } from '../types';
 import { PlusIcon, PencilIcon, TrashIcon } from './icons';
 import { useLanguage } from '../i18n/LanguageProvider';
+import Tooltip from './Tooltip';
 
 interface ClientsPageProps {
     clients: Client[];
@@ -178,12 +180,16 @@ const ClientsPage: React.FC<ClientsPageProps> = ({ clients, onAddClient, onUpdat
                                 </p>
                             </div>
                             <div className="flex items-center space-x-2">
-                                <button onClick={() => handleOpenModalForEdit(client)} className="p-2 text-slate-500 hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400">
-                                    <PencilIcon className="h-5 w-5" />
-                                </button>
-                                <button onClick={() => handleDelete(client.id)} className="p-2 text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-500">
-                                    <TrashIcon className="h-5 w-5" />
-                                </button>
+                                <Tooltip content={t('common.edit')}>
+                                    <button onClick={() => handleOpenModalForEdit(client)} className="p-2 text-slate-500 hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400">
+                                        <PencilIcon className="h-5 w-5" />
+                                    </button>
+                                </Tooltip>
+                                <Tooltip content={t('common.delete')}>
+                                    <button onClick={() => handleDelete(client.id)} className="p-2 text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-500">
+                                        <TrashIcon className="h-5 w-5" />
+                                    </button>
+                                </Tooltip>
                             </div>
                         </li>
                     ))}

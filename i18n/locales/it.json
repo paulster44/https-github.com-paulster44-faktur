@@ -29,6 +29,7 @@
         "close": "Chiudi",
         "print": "Stampa",
         "export": "Esporta PDF",
+        "preview": "Anteprima",
         "description": "Descrizione",
         "unitPrice": "Prezzo unitario",
         "companyName": "Nome dell'azienda",
@@ -103,7 +104,8 @@
         "selectClientAlert": "Si prega di selezionare un cliente.",
         "selectItem": "Seleziona articolo",
         "itemDescriptionPlaceholder": "Descrizione dell'articolo",
-        "addLineItem": "Aggiungi riga"
+        "addLineItem": "Aggiungi riga",
+        "previewTitle": "Anteprima fattura"
     },
     "sendInvoice": {
         "title": "Invia fattura",
@@ -182,6 +184,9 @@
         "noteOptional": "Nota (opzionale)",
         "savePayment": "Salva pagamento",
         "invalidAmount": "Il pagamento deve essere compreso tra 0,01 $ e {{amount}}.",
+        "markAsUnpaid": "Segna come non pagata",
+        "markUnpaidConfirmTitle": "Segnare la fattura come non pagata?",
+        "markUnpaidConfirmMessage": "Sei sicuro di voler contrassegnare questa fattura come non pagata? Ciò rimuoverà tutti i record di pagamento e ripristinerà lo stato a Inviata o Scaduta.",
         "methods": {
             "bankTransfer": "Bonifico bancario",
             "creditCard": "Carta di credito",
@@ -206,6 +211,7 @@
         "invoiceSent": "Fattura inviata con successo!",
         "reminderSent": "Promemoria inviato con successo!",
         "paymentRecorded": "Pagamento registrato con successo!",
+        "invoiceMarkedUnpaid": "Fattura contrassegnata come non pagata.",
         "invoicesDeleted": "{{count}} fatture eliminate con successo.",
         "invoicesMarkedAsPaid": "{{count}} fatture contrassegnate come pagate.",
         "exporting": "Generazione file...",

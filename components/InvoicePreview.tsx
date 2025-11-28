@@ -10,21 +10,23 @@ interface InvoicePreviewProps {
 }
 
 const formatCurrency = (amount: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
-const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+const formatDate = (dateString: string) => {
+    if(!dateString) return '';
+    return new Date(dateString).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+};
 
 const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice, companyProfile }) => {
     const { t } = useLanguage();
     const balanceDue = invoice.total - invoice.amountPaid;
     const selectedTemplate = templates.find(t => t.id === companyProfile.template) || templates[0];
 
+    // Ensure lineItems is an array
+    const lineItems = invoice.lineItems || [];
+
     return (
         <div className="invoice-preview-wrapper">
              <style>
-                {`
-                    .invoice-preview-container .invoice-preview {
-                        ${selectedTemplate.css}
-                    }
-                `}
+                {selectedTemplate.css}
             </style>
             <div className="invoice-preview-container">
                 <div className="invoice-preview p-6 md:p-8 bg-white text-gray-900 font-sans text-sm border border-gray-200 rounded-lg shadow-sm">
@@ -68,14 +70,19 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice, companyProfile
                                 </tr>
                             </thead>
                             <tbody>
-                                {invoice.lineItems.map(item => (
+                                {lineItems.map(item => (
                                     <tr key={item.id} className="border-b border-slate-100">
-                                        <td className="p-3">{item.description}</td>
-                                        <td className="p-3 text-center">{item.quantity}</td>
-                                        <td className="p-3 text-right">{formatCurrency(item.unitPrice)}</td>
-                                        <td className="p-3 text-right">{formatCurrency(item.quantity * item.unitPrice)}</td>
+                                        <td className="p-3 text-slate-700">{item.description}</td>
+                                        <td className="p-3 text-center text-slate-700">{item.quantity}</td>
+                                        <td className="p-3 text-right text-slate-700">{formatCurrency(item.unitPrice)}</td>
+                                        <td className="p-3 text-right text-slate-700">{formatCurrency(item.quantity * item.unitPrice)}</td>
                                     </tr>
                                 ))}
+                                {lineItems.length === 0 && (
+                                    <tr>
+                                        <td colSpan={4} className="p-4 text-center text-gray-400 italic">No items</td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>
