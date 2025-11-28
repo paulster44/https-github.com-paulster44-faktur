@@ -1,12 +1,14 @@
 
-import React, { useState } from 'react';
+
+import React, { useState, useMemo } from 'react';
 import { type Invoice, type InvoiceStatus, type CompanyProfile } from '../types';
-import { PlusIcon, TrashIcon, CheckCircleIcon } from './icons';
+import { PlusIcon, TrashIcon, CheckCircleIcon, ArrowDownTrayIcon } from './icons';
 import { type View, type SendMode } from '../App';
 import InvoiceDetailsModal from './InvoiceDetailsModal';
 import ConfirmationModal from './ConfirmationModal';
 import { useLanguage } from '../i18n/LanguageProvider';
 import Tooltip from './Tooltip';
+import { exportToCSV } from '../utils/exportHelpers';
 
 interface InvoicesPageProps {
     invoices: Invoice[];
@@ -164,7 +166,19 @@ const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpd
     const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
     const [selectedInvoices, setSelectedInvoices] = useState<string[]>([]);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [statusFilter, setStatusFilter] = useState<InvoiceStatus | 'ALL'>('ALL');
+    const [searchTerm, setSearchTerm] = useState('');
     const { t } = useLanguage();
+
+    const filteredInvoices = useMemo(() => {
+        return invoices.filter(inv => {
+            const matchesStatus = statusFilter === 'ALL' || inv.status === statusFilter;
+            const matchesSearch = 
+                inv.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                inv.client.name.toLowerCase().includes(searchTerm.toLowerCase());
+            return matchesStatus && matchesSearch;
+        });
+    }, [invoices, statusFilter, searchTerm]);
 
     const handleSelectOne = (invoiceId: string) => {
         setSelectedInvoices(prev =>
@@ -176,7 +190,7 @@ const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpd
 
     const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.checked) {
-            setSelectedInvoices(invoices.map(inv => inv.id));
+            setSelectedInvoices(filteredInvoices.map(inv => inv.id));
         } else {
             setSelectedInvoices([]);
         }
@@ -191,6 +205,20 @@ const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpd
     const handleBulkPaid = () => {
         onBulkMarkAsPaid(selectedInvoices);
         setSelectedInvoices([]);
+    };
+    
+    const handleExportCSV = () => {
+        const headers = ['Invoice Number', 'Client', 'Issue Date', 'Due Date', 'Total', 'Amount Paid', 'Status'];
+        const rows = filteredInvoices.map(inv => [
+            inv.invoiceNumber,
+            inv.client.name,
+            inv.issueDate,
+            inv.dueDate,
+            inv.total,
+            inv.amountPaid,
+            inv.status
+        ]);
+        exportToCSV('invoices.csv', headers, rows);
     };
 
     const handleCloseModal = () => setSelectedInvoice(null);
@@ -213,12 +241,24 @@ const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpd
         </div>
     );
 
+    const FilterTab = ({ label, value }: { label: string, value: InvoiceStatus | 'ALL' }) => (
+        <button
+            onClick={() => setStatusFilter(value)}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                statusFilter === value 
+                ? 'border-sky-500 text-sky-600 dark:text-sky-400' 
+                : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+            }`}
+        >
+            {label}
+        </button>
+    );
+
     return (
         <>
-            <div className="relative bg-white dark:bg-slate-800 rounded-lg shadow-lg md:overflow-hidden">
-                {selectedInvoices.length > 0 && <BulkActionsBar />}
-                <div className="p-4 md:p-6 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                     <h2 className="text-xl font-bold">{t('header.invoices')}</h2>
+            <div className="space-y-4">
+                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{t('header.invoices')}</h2>
                     <button 
                         onClick={() => onNavigate('create-invoice')}
                         className="inline-flex items-center justify-center rounded-md border border-transparent bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2">
@@ -226,11 +266,42 @@ const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpd
                         {t('invoices.newInvoice')}
                     </button>
                 </div>
-                
-                <div className="p-0">
-                    <InvoiceList invoices={invoices} onInvoiceSelect={setSelectedInvoice} selectedInvoices={selectedInvoices} onSelectAll={handleSelectAll} onSelectOne={handleSelectOne} />
+
+                <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 relative">
+                    {selectedInvoices.length > 0 && <BulkActionsBar />}
+                    
+                    <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex flex-col md:flex-row justify-between items-center gap-4">
+                         <div className="flex space-x-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
+                            <FilterTab label="All" value="ALL" />
+                            <FilterTab label="Paid" value="PAID" />
+                            <FilterTab label="Pending" value="SENT" />
+                            <FilterTab label="Overdue" value="OVERDUE" />
+                            <FilterTab label="Draft" value="DRAFT" />
+                        </div>
+                        <div className="flex items-center space-x-2 w-full md:w-auto">
+                            <div className="w-full md:w-64">
+                                <input 
+                                    type="text" 
+                                    placeholder="Search invoices..." 
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full px-4 py-2 rounded-md border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-sm focus:ring-sky-500 focus:border-sky-500"
+                                />
+                            </div>
+                            <Tooltip content={t('common.exportCSV')}>
+                                <button onClick={handleExportCSV} className="p-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300">
+                                    <ArrowDownTrayIcon className="h-5 w-5" />
+                                </button>
+                            </Tooltip>
+                        </div>
+                    </div>
+                    
+                    <div className="p-0">
+                        <InvoiceList invoices={filteredInvoices} onInvoiceSelect={setSelectedInvoice} selectedInvoices={selectedInvoices} onSelectAll={handleSelectAll} onSelectOne={handleSelectOne} />
+                    </div>
                 </div>
             </div>
+
              {selectedInvoice && (
                 <InvoiceDetailsModal 
                     invoice={selectedInvoice}

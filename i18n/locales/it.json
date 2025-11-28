@@ -1,4 +1,3 @@
-
 {
     "app": {
         "loading": "Caricamento..."
@@ -29,6 +28,7 @@
         "close": "Chiudi",
         "print": "Stampa",
         "export": "Esporta PDF",
+        "exportCSV": "Esporta CSV",
         "preview": "Anteprima",
         "description": "Descrizione",
         "unitPrice": "Prezzo unitario",

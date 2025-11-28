@@ -1,4 +1,3 @@
-
 {
     "app": {
         "loading": "Chargement..."
@@ -29,6 +28,7 @@
         "close": "Fermer",
         "print": "Imprimer",
         "export": "Exporter en PDF",
+        "exportCSV": "Exporter en CSV",
         "preview": "Aperçu",
         "description": "Description",
         "unitPrice": "Prix unitaire",

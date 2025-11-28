@@ -123,6 +123,7 @@ const ClientFormModal: React.FC<{
 const ClientsPage: React.FC<ClientsPageProps> = ({ clients, onAddClient, onUpdateClient, onDeleteClient }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
     const { t } = useLanguage();
 
     const handleOpenModalForAdd = () => {
@@ -151,50 +152,99 @@ const ClientsPage: React.FC<ClientsPageProps> = ({ clients, onAddClient, onUpdat
         }
     }
 
+    const filteredClients = clients.filter(client => 
+        client.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        client.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        client.contactName?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg">
-            <div className="p-4 md:p-6 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                <h2 className="text-xl font-bold">{t('header.clients')}</h2>
+        <div className="space-y-4">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
+                <div className="w-full md:w-1/3">
+                    <input 
+                        type="text" 
+                        placeholder="Search clients..." 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full px-4 py-2 rounded-md border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-sm focus:ring-sky-500 focus:border-sky-500"
+                    />
+                </div>
                 <button
                     onClick={handleOpenModalForAdd}
-                    className="inline-flex items-center justify-center rounded-md border border-transparent bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
+                    className="w-full md:w-auto inline-flex items-center justify-center rounded-md border border-transparent bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
                 >
                     <PlusIcon className="-ml-1 mr-2 h-5 w-5"/>
                     {t('clients.addClient')}
                 </button>
             </div>
-            {clients.length === 0 ? (
-                 <div className="p-12 text-center">
-                    <h3 className="text-lg font-medium text-slate-900 dark:text-white">{t('clients.noClientsFound')}</h3>
-                    <p className="mt-1 text-sm text-slate-500">{t('clients.noClientsMessage')}</p>
-                </div>
-            ) : (
-                <ul className="divide-y divide-slate-200 dark:divide-slate-700">
-                    {clients.map(client => (
-                        <li key={client.id} className="p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700/50">
-                            <div>
-                                <p className="text-sm font-medium text-slate-900 dark:text-white">{client.name}</p>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">
-                                    {client.contactName && <span className="font-medium">{client.contactName} &bull; </span>}
-                                    {client.email}
-                                </p>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <Tooltip content={t('common.edit')}>
-                                    <button onClick={() => handleOpenModalForEdit(client)} className="p-2 text-slate-500 hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400">
-                                        <PencilIcon className="h-5 w-5" />
-                                    </button>
-                                </Tooltip>
-                                <Tooltip content={t('common.delete')}>
-                                    <button onClick={() => handleDelete(client.id)} className="p-2 text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-500">
-                                        <TrashIcon className="h-5 w-5" />
-                                    </button>
-                                </Tooltip>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            )}
+
+            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+                {clients.length === 0 ? (
+                     <div className="p-12 text-center">
+                        <h3 className="text-lg font-medium text-slate-900 dark:text-white">{t('clients.noClientsFound')}</h3>
+                        <p className="mt-1 text-sm text-slate-500">{t('clients.noClientsMessage')}</p>
+                    </div>
+                ) : filteredClients.length === 0 ? (
+                    <div className="p-12 text-center">
+                        <p className="text-sm text-slate-500">No clients match your search.</p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+                            <thead className="bg-slate-50 dark:bg-slate-700/50">
+                                <tr>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Client</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Contact</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">Email</th>
+                                    <th scope="col" className="relative px-6 py-3">
+                                        <span className="sr-only">Actions</span>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
+                                {filteredClients.map(client => (
+                                    <tr key={client.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center">
+                                                <div className="flex-shrink-0 h-10 w-10">
+                                                    <div className="h-10 w-10 rounded-full bg-sky-100 dark:bg-sky-900 flex items-center justify-center text-sky-600 dark:text-sky-300 font-bold">
+                                                        {client.name.substring(0, 2).toUpperCase()}
+                                                    </div>
+                                                </div>
+                                                <div className="ml-4">
+                                                    <div className="text-sm font-medium text-slate-900 dark:text-white">{client.name}</div>
+                                                    <div className="text-sm text-slate-500 dark:text-slate-400">{client.address?.city}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                                            {client.contactName || '-'}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                                            {client.email || '-'}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <div className="flex justify-end items-center space-x-2">
+                                                <Tooltip content={t('common.edit')}>
+                                                    <button onClick={() => handleOpenModalForEdit(client)} className="p-2 text-slate-500 hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400">
+                                                        <PencilIcon className="h-5 w-5" />
+                                                    </button>
+                                                </Tooltip>
+                                                <Tooltip content={t('common.delete')}>
+                                                    <button onClick={() => handleDelete(client.id)} className="p-2 text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-500">
+                                                        <TrashIcon className="h-5 w-5" />
+                                                    </button>
+                                                </Tooltip>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
              <ClientFormModal 
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
