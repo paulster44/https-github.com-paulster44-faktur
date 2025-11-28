@@ -105,7 +105,8 @@
         "selectItem": "Seleziona articolo",
         "itemDescriptionPlaceholder": "Descrizione dell'articolo",
         "addLineItem": "Aggiungi riga",
-        "previewTitle": "Anteprima fattura"
+        "previewTitle": "Anteprima fattura",
+        "saveAndSend": "Salva e invia"
     },
     "sendInvoice": {
         "title": "Invia fattura",
@@ -139,7 +140,7 @@
         "revenueByClient": "Entrate per cliente",
         "client": "Cliente",
         "invoices": "Fatture",
-        "amount": "Importo",
+        "amount": "Importe",
         "noData": "Nessun dato disponibile per il periodo selezionato."
     },
     "setup": {
@@ -178,7 +179,7 @@
         "noPayments": "Nessun pagamento è stato registrato per questa fattura.",
         "recordPayment": "Registra pagamento",
         "addPayment": "Aggiungi pagamento",
-        "amount": "Importo",
+        "amount": "Importe",
         "date": "Data",
         "method": "Metodo",
         "noteOptional": "Nota (opzionale)",

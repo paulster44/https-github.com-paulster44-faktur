@@ -144,7 +144,8 @@
         "selectItem": "Select Item",
         "itemDescriptionPlaceholder": "Item description",
         "addLineItem": "Add Line Item",
-        "previewTitle": "Invoice Preview"
+        "previewTitle": "Invoice Preview",
+        "saveAndSend": "Save & Send"
     },
     "sendInvoice": {
         "title": "Send Invoice",

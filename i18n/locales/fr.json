@@ -105,7 +105,8 @@
         "selectItem": "Sélectionner un article",
         "itemDescriptionPlaceholder": "Description de l'article",
         "addLineItem": "Ajouter une ligne",
-        "previewTitle": "Aperçu de la facture"
+        "previewTitle": "Aperçu de la facture",
+        "saveAndSend": "Enregistrer et envoyer"
     },
     "sendInvoice": {
         "title": "Envoyer la facture",
