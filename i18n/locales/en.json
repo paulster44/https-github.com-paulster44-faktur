@@ -1,3 +1,4 @@
+
 {
     "app": {
         "loading": "Loading..."
@@ -254,8 +255,9 @@
         "invoiceMarkedUnpaid": "Invoice marked as unpaid.",
         "invoicesDeleted": "{{count}} invoices deleted successfully.",
         "invoicesMarkedAsPaid": "{{count}} invoices marked as paid.",
-        "exporting": "Generating file...",
-        "exportFailed": "Failed to export file."
+        "exporting": "Generating invoice PDF...",
+        "exportFailed": "Failed to export file.",
+        "attachFileInstruction": "Invoice PDF downloaded. Please attach it to the email."
     },
     "status": {
         "draft": "Draft",

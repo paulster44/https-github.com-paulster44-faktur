@@ -1,10 +1,8 @@
 
-
 import React, { useState, useMemo } from 'react';
 import { type Invoice, type InvoiceStatus, type CompanyProfile } from '../types';
-import { PlusIcon, TrashIcon, CheckCircleIcon, ArrowDownTrayIcon } from './icons';
+import { PlusIcon, TrashIcon, CheckCircleIcon, ArrowDownTrayIcon, EyeIcon, PencilIcon, DocumentTextIcon } from './icons';
 import { type View, type SendMode } from '../App';
-import InvoiceDetailsModal from './InvoiceDetailsModal';
 import ConfirmationModal from './ConfirmationModal';
 import { useLanguage } from '../i18n/LanguageProvider';
 import Tooltip from './Tooltip';
@@ -18,6 +16,7 @@ interface InvoicesPageProps {
     onBulkMarkAsPaid: (invoiceIds: string[]) => void;
     onEditInvoice: (invoice: Invoice) => void;
     onSendInvoice: (invoice: Invoice, mode: SendMode) => void;
+    onViewInvoice: (invoice: Invoice) => void;
     companyProfile: CompanyProfile;
 }
 
@@ -29,141 +28,30 @@ const formatCurrency = (amount: number | null) => {
 const formatDate = (dateString: string | null) => {
     if (!dateString) return 'N/A';
     try {
-        return new Date(dateString).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
+        return new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     } catch {
         return dateString;
     }
 }
 
-const StatusBadge: React.FC<{ status: InvoiceStatus }> = ({ status }) => {
-    const { t } = useLanguage();
-    const statusStyles: { [key in InvoiceStatus]: string } = {
-      DRAFT: 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-300',
-      SENT: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-      PAID: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-      OVERDUE: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
-      PARTIALLY_PAID: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+const StatusPill: React.FC<{ status: InvoiceStatus }> = ({ status }) => {
+    const styles = {
+        PAID: 'bg-green-100 text-green-700',
+        SENT: 'bg-blue-100 text-blue-700',
+        OVERDUE: 'bg-red-100 text-red-700',
+        DRAFT: 'bg-gray-100 text-gray-700',
+        PARTIALLY_PAID: 'bg-yellow-100 text-yellow-700'
     };
+    const label = status.charAt(0) + status.slice(1).toLowerCase().replace('_', ' ');
+
     return (
-        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusStyles[status]}`}>
-            {t(`status.${status.toLowerCase()}`)}
+        <span className={`px-2.5 py-0.5 rounded-md text-xs font-semibold ${styles[status] || styles.DRAFT}`}>
+            {label}
         </span>
     );
 };
 
-interface InvoiceListProps {
-    invoices: Invoice[];
-    onInvoiceSelect: (invoice: Invoice) => void;
-    selectedInvoices: string[];
-    onSelectAll: (event: React.ChangeEvent<HTMLInputElement>) => void;
-    onSelectOne: (invoiceId: string) => void;
-}
-
-const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, onInvoiceSelect, selectedInvoices, onSelectAll, onSelectOne }) => {
-    const { t } = useLanguage();
-    const isAllSelected = invoices.length > 0 && selectedInvoices.length === invoices.length;
-
-     return (
-        <>
-        {invoices.length === 0 ? (
-            <div className="p-12 text-center">
-                <h3 className="text-lg font-medium text-slate-900 dark:text-white">{t('invoices.noInvoicesYet')}</h3>
-            </div>
-        ) : (
-            <>
-                {/* Mobile View - Cards */}
-                <div className="block md:hidden space-y-4 p-4">
-                    <div className="flex items-center mb-2 px-2">
-                         <input 
-                            type="checkbox"
-                            className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500 mr-2"
-                            checked={isAllSelected}
-                            onChange={onSelectAll}
-                        />
-                        <span className="text-sm text-slate-500">{t('common.selectAll')}</span>
-                    </div>
-                    {invoices.map(invoice => (
-                        <div 
-                            key={invoice.id} 
-                            onClick={() => onInvoiceSelect(invoice)}
-                            className={`bg-white dark:bg-slate-800 rounded-lg shadow p-4 border ${selectedInvoices.includes(invoice.id) ? 'border-sky-500 ring-1 ring-sky-500' : 'border-transparent'}`}
-                        >
-                            <div className="flex justify-between items-start mb-2">
-                                <div className="flex items-center">
-                                    <input
-                                        type="checkbox"
-                                        className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500 mr-3"
-                                        checked={selectedInvoices.includes(invoice.id)}
-                                        onChange={(e) => { e.stopPropagation(); onSelectOne(invoice.id); }}
-                                    />
-                                    <span className="text-sm font-medium text-sky-600 dark:text-sky-400">#{invoice.invoiceNumber}</span>
-                                </div>
-                                <StatusBadge status={invoice.status} />
-                            </div>
-                            <div className="mb-2">
-                                <p className="text-base font-semibold text-slate-900 dark:text-white">{invoice.client.name}</p>
-                            </div>
-                            <div className="flex justify-between items-center text-sm">
-                                <span className="text-slate-500 dark:text-slate-400">{t('common.dueDate')}: {formatDate(invoice.dueDate)}</span>
-                                <span className="font-bold text-slate-900 dark:text-white">{formatCurrency(invoice.total)}</span>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Desktop View - Table */}
-                <div className="hidden md:block overflow-x-auto">
-                    <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
-                        <thead className="bg-slate-50 dark:bg-slate-700/50">
-                            <tr>
-                                <th scope="col" className="px-6 py-3">
-                                    <input 
-                                        type="checkbox"
-                                        className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
-                                        checked={isAllSelected}
-                                        ref={input => {
-                                            if (input) input.indeterminate = selectedInvoices.length > 0 && !isAllSelected;
-                                        }}
-                                        onChange={onSelectAll}
-                                    />
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('invoices.number')}</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('invoices.client')}</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('common.dueDate')}</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('invoices.status')}</th>
-                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-300 uppercase tracking-wider">{t('common.total')}</th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
-                            {invoices.map(invoice => (
-                                <tr key={invoice.id} className={`${selectedInvoices.includes(invoice.id) ? 'bg-sky-50 dark:bg-sky-900/50' : ''} hover:bg-slate-50 dark:hover:bg-slate-700/50`}>
-                                    <td className="px-6 py-4 whitespace-nowrap" onClick={e => e.stopPropagation()}>
-                                        <input
-                                            type="checkbox"
-                                            className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
-                                            checked={selectedInvoices.includes(invoice.id)}
-                                            onChange={() => onSelectOne(invoice.id)}
-                                        />
-                                    </td>
-                                    <td onClick={() => onInvoiceSelect(invoice)} className="px-6 py-4 whitespace-nowrap text-sm font-medium text-sky-600 dark:text-sky-400 cursor-pointer">#{invoice.invoiceNumber}</td>
-                                    <td onClick={() => onInvoiceSelect(invoice)} className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-white cursor-pointer">{invoice.client.name}</td>
-                                    <td onClick={() => onInvoiceSelect(invoice)} className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400 cursor-pointer">{formatDate(invoice.dueDate)}</td>
-                                    <td onClick={() => onInvoiceSelect(invoice)} className="px-6 py-4 whitespace-nowrap text-sm cursor-pointer"><StatusBadge status={invoice.status} /></td>
-                                    <td onClick={() => onInvoiceSelect(invoice)} className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium cursor-pointer">{formatCurrency(invoice.total)}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </>
-        )}
-        </>
-     );
-}
-
-
-const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpdateInvoice, onDeleteInvoices, onBulkMarkAsPaid, onEditInvoice, onSendInvoice, companyProfile }) => {
-    const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpdateInvoice, onDeleteInvoices, onBulkMarkAsPaid, onEditInvoice, onSendInvoice, onViewInvoice, companyProfile }) => {
     const [selectedInvoices, setSelectedInvoices] = useState<string[]>([]);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [statusFilter, setStatusFilter] = useState<InvoiceStatus | 'ALL'>('ALL');
@@ -221,19 +109,17 @@ const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpd
         exportToCSV('invoices.csv', headers, rows);
     };
 
-    const handleCloseModal = () => setSelectedInvoice(null);
-
     const BulkActionsBar = () => (
         <div className="absolute top-0 left-1/2 -translate-x-1/2 mt-4 z-20 w-full max-w-fit animate-fade-in-down">
-            <div className="flex items-center space-x-2 bg-white dark:bg-slate-700 shadow-lg rounded-full px-3 py-2">
-                <span className="text-sm font-medium text-slate-700 dark:text-slate-200 px-2">{t('invoices.selected', { count: selectedInvoices.length })}</span>
+            <div className="flex items-center space-x-2 bg-white shadow-lg rounded-full px-4 py-2 border border-gray-100">
+                <span className="text-sm font-medium text-gray-700 px-2">{t('invoices.selected', { count: selectedInvoices.length })}</span>
                 <Tooltip content={t('invoices.markAsPaid')}>
-                    <button onClick={handleBulkPaid} className="inline-flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-600 px-3 py-1.5 text-sm font-medium text-slate-800 dark:text-slate-100 shadow-sm hover:bg-slate-200 dark:hover:bg-slate-500">
+                    <button onClick={handleBulkPaid} className="inline-flex items-center justify-center rounded-full bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-800 shadow-sm hover:bg-gray-200">
                         <CheckCircleIcon className="h-4 w-4 text-green-500" />
                     </button>
                 </Tooltip>
                 <Tooltip content={t('common.delete')}>
-                    <button onClick={() => setIsConfirmModalOpen(true)} className="inline-flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-600 px-3 py-1.5 text-sm font-medium text-slate-800 dark:text-slate-100 shadow-sm hover:bg-slate-200 dark:hover:bg-slate-500">
+                    <button onClick={() => setIsConfirmModalOpen(true)} className="inline-flex items-center justify-center rounded-full bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-800 shadow-sm hover:bg-gray-200">
                         <TrashIcon className="h-4 w-4 text-red-500" />
                     </button>
                 </Tooltip>
@@ -246,8 +132,8 @@ const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpd
             onClick={() => setStatusFilter(value)}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                 statusFilter === value 
-                ? 'border-sky-500 text-sky-600 dark:text-sky-400' 
-                : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+                ? 'border-blue-500 text-blue-600' 
+                : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
         >
             {label}
@@ -255,63 +141,124 @@ const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpd
     );
 
     return (
-        <>
-            <div className="space-y-4">
-                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{t('header.invoices')}</h2>
-                    <button 
-                        onClick={() => onNavigate('create-invoice')}
-                        className="inline-flex items-center justify-center rounded-md border border-transparent bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2">
-                        <PlusIcon className="-ml-1 mr-2 h-5 w-5"/>
-                        {t('invoices.newInvoice')}
-                    </button>
-                </div>
+        <div className="space-y-6">
+             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <h2 className="text-2xl font-bold text-gray-900">{t('header.invoices')}</h2>
+                <button 
+                    onClick={() => onNavigate('create-invoice')}
+                    className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                    <PlusIcon className="-ml-1 mr-2 h-5 w-5"/>
+                    {t('invoices.newInvoice')}
+                </button>
+            </div>
 
-                <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 relative">
-                    {selectedInvoices.length > 0 && <BulkActionsBar />}
-                    
-                    <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex flex-col md:flex-row justify-between items-center gap-4">
-                         <div className="flex space-x-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
-                            <FilterTab label="All" value="ALL" />
-                            <FilterTab label="Paid" value="PAID" />
-                            <FilterTab label="Pending" value="SENT" />
-                            <FilterTab label="Overdue" value="OVERDUE" />
-                            <FilterTab label="Draft" value="DRAFT" />
-                        </div>
-                        <div className="flex items-center space-x-2 w-full md:w-auto">
-                            <div className="w-full md:w-64">
-                                <input 
-                                    type="text" 
-                                    placeholder="Search invoices..." 
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full px-4 py-2 rounded-md border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-sm focus:ring-sky-500 focus:border-sky-500"
-                                />
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 relative overflow-hidden min-h-[500px]">
+                {selectedInvoices.length > 0 && <BulkActionsBar />}
+                
+                <div className="p-4 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
+                     <div className="flex space-x-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
+                        <FilterTab label="All" value="ALL" />
+                        <FilterTab label="Paid" value="PAID" />
+                        <FilterTab label="Sent" value="SENT" />
+                        <FilterTab label="Overdue" value="OVERDUE" />
+                        <FilterTab label="Draft" value="DRAFT" />
+                    </div>
+                    <div className="flex items-center space-x-3 w-full md:w-auto">
+                        <div className="relative w-full md:w-64">
+                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg className="h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
                             </div>
-                            <Tooltip content={t('common.exportCSV')}>
-                                <button onClick={handleExportCSV} className="p-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300">
-                                    <ArrowDownTrayIcon className="h-5 w-5" />
-                                </button>
-                            </Tooltip>
+                            <input 
+                                type="text" 
+                                placeholder="Search invoices..." 
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
+                            />
                         </div>
+                        <Tooltip content={t('common.exportCSV')}>
+                            <button onClick={handleExportCSV} className="p-2 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 text-gray-600 transition-colors">
+                                <ArrowDownTrayIcon className="h-5 w-5" />
+                            </button>
+                        </Tooltip>
                     </div>
-                    
-                    <div className="p-0">
-                        <InvoiceList invoices={filteredInvoices} onInvoiceSelect={setSelectedInvoice} selectedInvoices={selectedInvoices} onSelectAll={handleSelectAll} onSelectOne={handleSelectOne} />
-                    </div>
+                </div>
+                
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-100">
+                        <thead className="bg-gray-50">
+                            <tr>
+                                <th scope="col" className="px-6 py-3 w-[50px]">
+                                    <input 
+                                        type="checkbox"
+                                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        checked={invoices.length > 0 && selectedInvoices.length === filteredInvoices.length}
+                                        ref={input => {
+                                            if (input) input.indeterminate = selectedInvoices.length > 0 && selectedInvoices.length < filteredInvoices.length;
+                                        }}
+                                        onChange={handleSelectAll}
+                                    />
+                                </th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">{t('invoices.status')}</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">{t('invoices.number')}</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">{t('invoices.client')}</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">{t('common.dueDate')}</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">{t('common.total')}</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-100">
+                            {filteredInvoices.map(invoice => (
+                                <tr 
+                                    key={invoice.id} 
+                                    className={`${selectedInvoices.includes(invoice.id) ? 'bg-blue-50/30' : ''} hover:bg-gray-50 transition-colors`}
+                                    onClick={() => onViewInvoice(invoice)}
+                                >
+                                    <td className="px-6 py-4 whitespace-nowrap" onClick={e => e.stopPropagation()}>
+                                        <input
+                                            type="checkbox"
+                                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                            checked={selectedInvoices.includes(invoice.id)}
+                                            onChange={() => handleSelectOne(invoice.id)}
+                                        />
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap"><StatusPill status={invoice.status} /></td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 cursor-pointer">#{invoice.invoiceNumber}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium cursor-pointer">{invoice.client.name}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 cursor-pointer">{formatDate(invoice.dueDate)}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 cursor-pointer">{formatCurrency(invoice.total)}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={e => e.stopPropagation()}>
+                                        <div className="flex items-center space-x-3 text-gray-400">
+                                            <Tooltip content={t('common.preview')}>
+                                                <button onClick={() => onViewInvoice(invoice)} className="hover:text-gray-600"><EyeIcon className="h-4 w-4" /></button>
+                                            </Tooltip>
+                                            <Tooltip content={t('common.edit')}>
+                                                <button onClick={() => onEditInvoice(invoice)} className="hover:text-blue-600"><PencilIcon className="h-4 w-4" /></button>
+                                            </Tooltip>
+                                            <Tooltip content={t('sendInvoice.title')}>
+                                                <button onClick={() => onSendInvoice(invoice, 'send')} className="hover:text-green-600"><DocumentTextIcon className="h-4 w-4" /></button>
+                                            </Tooltip>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                            {filteredInvoices.length === 0 && (
+                                <tr>
+                                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                                        <div className="flex flex-col items-center justify-center">
+                                            <DocumentTextIcon className="h-10 w-10 text-gray-300 mb-2" />
+                                            <p>{t('invoices.noInvoicesYet')}</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-             {selectedInvoice && (
-                <InvoiceDetailsModal 
-                    invoice={selectedInvoice}
-                    onClose={handleCloseModal}
-                    onUpdateInvoice={onUpdateInvoice}
-                    companyProfile={companyProfile}
-                    onEdit={onEditInvoice}
-                    onSend={onSendInvoice}
-                />
-            )}
             <ConfirmationModal
                 isOpen={isConfirmModalOpen}
                 onClose={() => setIsConfirmModalOpen(false)}
@@ -319,7 +266,7 @@ const InvoicesPage: React.FC<InvoicesPageProps> = ({ invoices, onNavigate, onUpd
                 title={t('invoices.deleteInvoicesTitle', { count: selectedInvoices.length })}
                 message={t('invoices.deleteInvoicesMessage')}
             />
-        </>
+        </div>
     );
 };
 

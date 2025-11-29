@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { type Invoice, type Client, type Item, type CompanyProfile, type InvoiceStatus, type Expense } from './types';
 import { mockInvoices, mockClients, mockItems } from './services/geminiService';
-import Header from './components/Header';
+import Sidebar from './components/Sidebar';
+import Header from './components/Header'; // Mobile only
 import HomePage from './components/HomePage';
 import InvoicesPage from './components/InvoicesPage';
 import ClientsPage from './components/ClientsPage';
@@ -14,6 +15,7 @@ import ReportsPage from './components/ReportsPage';
 import ReceiptList from './components/ReceiptList'; // Expenses Page
 import LoginScreen from './components/LoginScreen';
 import SendInvoiceModal from './components/SendInvoiceModal';
+import InvoiceDetailsModal from './components/InvoiceDetailsModal';
 import { Toaster, toast } from './components/Toaster';
 import { LanguageProvider, useLanguage } from './i18n/LanguageProvider';
 
@@ -30,9 +32,11 @@ const MainApp: React.FC = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
-  // Replaces draftInvoiceToSend with a richer context
+  // Modal States
   const [sendContext, setSendContext] = useState<{ invoice: Invoice, mode: SendMode } | null>(null);
+  const [viewingInvoice, setViewingInvoice] = useState<Invoice | null>(null);
   
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const { t } = useLanguage();
@@ -189,7 +193,7 @@ const MainApp: React.FC = () => {
     toast.success(t('toasts.expenseDeleted'));
   };
 
-  const saveOrUpdateInvoice = (invoiceData: Invoice | Omit<Invoice, 'id' | 'invoiceNumber'>) => {
+  const saveOrUpdateInvoice = (invoiceData: Invoice | Omit<Invoice, 'id' | 'invoiceNumber'>, action: 'save' | 'send' = 'save') => {
     let savedInvoice: Invoice;
 
     if ('id' in invoiceData) {
@@ -224,8 +228,12 @@ const MainApp: React.FC = () => {
         toast.success(t('toasts.invoiceCreated', { number: newInvoiceNumber }));
     }
     
-    // Instead of going directly to invoices list, show the Send/Draft modal with 'send' mode
-    setSendContext({ invoice: savedInvoice, mode: 'send' });
+    if (action === 'send') {
+         setSendContext({ invoice: savedInvoice, mode: 'send' });
+    } else {
+        // Just save draft
+        setCurrentView('invoices');
+    }
     setEditingInvoice(null);
   };
   
@@ -257,14 +265,26 @@ const MainApp: React.FC = () => {
     }
   }
 
-  const updateInvoicePayment = (invoiceId: string, updatedInvoiceData: Partial<Invoice>) => {
-    setInvoices(prev => prev.map(inv => inv.id === invoiceId ? {...inv, ...updatedInvoiceData} : inv));
+  const updateInvoice = (invoiceId: string, updatedInvoiceData: Partial<Invoice>) => {
+    setInvoices(prev => {
+        const nextInvoices = prev.map(inv => inv.id === invoiceId ? {...inv, ...updatedInvoiceData} : inv);
+        // If we are viewing this invoice, update the view state as well to reflect changes immediately
+        if (viewingInvoice && viewingInvoice.id === invoiceId) {
+            setViewingInvoice(nextInvoices.find(inv => inv.id === invoiceId) || null);
+        }
+        return nextInvoices;
+    });
   }
 
   const handleEditInvoice = (invoice: Invoice) => {
     setEditingInvoice(invoice);
     setCurrentView('create-invoice');
+    setViewingInvoice(null); // Close detail view if open
   };
+
+  const handleViewInvoice = (invoice: Invoice) => {
+      setViewingInvoice(invoice);
+  }
 
   const deleteInvoices = (invoiceIds: string[]) => {
     setInvoices(prevInvoices => prevInvoices.filter(invoice => !invoiceIds.includes(invoice.id)));
@@ -288,7 +308,7 @@ const MainApp: React.FC = () => {
 
   if (!isAuthenticated) {
       return (
-          <div className="min-h-screen bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-200 font-sans">
+          <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
               <LoginScreen onLogin={handleLogin} />
           </div>
       );
@@ -296,14 +316,14 @@ const MainApp: React.FC = () => {
 
   const renderContent = () => {
     if (!isDataLoaded) {
-      return <div className="flex justify-center items-center h-screen"><p>{t('app.loading')}</p></div>;
+      return <div className="flex justify-center items-center h-full"><p>{t('app.loading')}</p></div>;
     }
 
     if (!companyProfile) {
       return <CompanySetup onSave={handleSaveProfile} />;
     }
 
-    // Modal takes precedence for sending flow
+    // Modals take precedence
     if (sendContext) {
         return <SendInvoiceModal 
             invoice={sendContext.invoice} 
@@ -316,22 +336,30 @@ const MainApp: React.FC = () => {
 
     switch (currentView) {
       case 'home':
-        return <HomePage invoices={invoices} onNavigate={setCurrentView} />;
+        return <HomePage 
+            invoices={invoices} 
+            clients={clients} 
+            onNavigate={setCurrentView}
+            onEditInvoice={handleEditInvoice}
+            onViewInvoice={handleViewInvoice}
+            onSendInvoice={(inv) => handleInitiateSend(inv, 'send')}
+        />;
       case 'invoices':
         return <InvoicesPage 
             invoices={invoices} 
             onNavigate={setCurrentView} 
-            onUpdateInvoice={updateInvoicePayment} 
+            onUpdateInvoice={updateInvoice} 
             companyProfile={companyProfile} 
             onDeleteInvoices={deleteInvoices}
             onBulkMarkAsPaid={bulkMarkAsPaid}
             onEditInvoice={handleEditInvoice}
             onSendInvoice={handleInitiateSend}
+            onViewInvoice={handleViewInvoice}
         />;
       case 'reports':
         return <ReportsPage invoices={invoices} clients={clients} />;
       case 'clients':
-        return <ClientsPage clients={clients} onAddClient={addClient} onUpdateClient={updateClient} onDeleteClient={deleteClient} />;
+        return <ClientsPage clients={clients} onAddClient={addClient} onUpdateClient={updateClient} onDeleteClient={deleteClient} invoices={invoices} />;
       case 'items':
         return <ItemsPage items={items} onAddItem={addItem} onUpdateItem={updateItem} onDeleteItem={deleteItem} />;
       case 'expenses':
@@ -348,24 +376,51 @@ const MainApp: React.FC = () => {
        case 'settings':
         return <SettingsPage companyProfile={companyProfile} onSave={handleSaveProfile} />;
       default:
-        return <HomePage invoices={invoices} onNavigate={setCurrentView} />;
+        return <HomePage invoices={invoices} clients={clients} onNavigate={setCurrentView} onViewInvoice={handleViewInvoice} onEditInvoice={handleEditInvoice} onSendInvoice={(inv) => handleInitiateSend(inv, 'send')} />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-200 font-sans">
-      {companyProfile && !sendContext && <Header currentView={currentView} onNavigate={setCurrentView} />}
-      <main className={`container mx-auto p-4 md:p-6 ${sendContext ? 'h-screen overflow-hidden p-0 m-0 max-w-none' : ''}`}>
-        {renderContent()}
-      </main>
-      <Toaster />
-      {!sendContext && (
-          <div className="fixed bottom-4 left-4">
-            <button onClick={handleLogout} className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
-                {t('login.logout')}
-            </button>
-          </div>
+    <div className="flex min-h-screen bg-gray-50 text-gray-900 font-sans">
+      {/* Sidebar Navigation */}
+      {companyProfile && !sendContext && (
+        <Sidebar 
+            currentView={currentView} 
+            onNavigate={setCurrentView} 
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+            onLogout={handleLogout}
+        />
       )}
+      
+      {/* Main Content Area */}
+      <div className={`flex-1 flex flex-col md:ml-64 transition-all duration-300 ${sendContext ? 'ml-0 md:ml-0' : ''}`}>
+        
+        {/* Mobile Top Bar */}
+        {!sendContext && companyProfile && (
+            <Header onMenuClick={() => setIsSidebarOpen(true)} />
+        )}
+
+        <main className={`flex-1 overflow-x-hidden overflow-y-auto ${sendContext ? 'h-screen p-0 m-0' : 'p-4 md:p-8'}`}>
+            <div className={`mx-auto ${sendContext ? 'w-full' : 'max-w-7xl'}`}>
+                {renderContent()}
+            </div>
+        </main>
+      </div>
+      
+      {/* Global Invoice Viewer Modal */}
+      {viewingInvoice && companyProfile && !sendContext && (
+          <InvoiceDetailsModal 
+            invoice={viewingInvoice}
+            companyProfile={companyProfile}
+            onClose={() => setViewingInvoice(null)}
+            onUpdateInvoice={updateInvoice}
+            onEdit={handleEditInvoice}
+            onSend={handleInitiateSend}
+          />
+      )}
+
+      <Toaster />
     </div>
   );
 };

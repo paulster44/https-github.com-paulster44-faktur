@@ -14,6 +14,7 @@ export const mockClients: Client[] = [
     id: 'client-1', 
     name: 'Innovate LLC', 
     email: 'contact@innovate.com', 
+    phone: '+1 555-0101',
     address: mockAddresses[0],
     contactName: 'Jane Doe',
     notes: 'Primary contact for all billing inquiries. Prefers communication via email.'
@@ -22,6 +23,7 @@ export const mockClients: Client[] = [
     id: 'client-2', 
     name: 'Solutions Co.', 
     email: 'billing@solutions.co', 
+    phone: '+1 555-0102',
     address: mockAddresses[1],
     contactName: 'John Smith',
     notes: 'Met at the 2024 Tech Conference. Interested in our new enterprise package.'
@@ -30,6 +32,7 @@ export const mockClients: Client[] = [
     id: 'client-3', 
     name: 'Alpha Tech', 
     email: 'accounts@alphatech.io', 
+    phone: '+1 555-0103',
     address: mockAddresses[2],
     contactName: 'Alex Ray',
     notes: 'Long-term client, always pays on time.'

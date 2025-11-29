@@ -5,6 +5,7 @@ import { type SendMode } from '../App';
 import { useLanguage } from '../i18n/LanguageProvider';
 import InvoicePreview from './InvoicePreview';
 import { DocumentTextIcon, CheckIcon } from './icons';
+import { toast } from './Toaster';
 
 interface SendInvoiceModalProps {
     invoice: Invoice;
@@ -19,6 +20,7 @@ const SendInvoiceModal: React.FC<SendInvoiceModalProps> = ({ invoice, companyPro
     const [email, setEmail] = useState(invoice.client.email || '');
     const [subject, setSubject] = useState('');
     const [message, setMessage] = useState('');
+    const [isSending, setIsSending] = useState(false);
 
     useEffect(() => {
         const clientName = invoice.client.contactName || invoice.client.name;
@@ -43,17 +45,47 @@ const SendInvoiceModal: React.FC<SendInvoiceModalProps> = ({ invoice, companyPro
         setMessage(defaultMessage);
     }, [invoice, companyProfile, mode, t]);
 
-    const handleSend = () => {
-        // Construct mailto link
+    const handleSend = async () => {
+        setIsSending(true);
+        
+        // 1. Generate PDF
+        const element = document.getElementById('invoice-preview-capture');
+        if (element && window.html2canvas && window.jspdf) {
+            try {
+                toast.success(t('toasts.exporting'));
+                const canvas = await window.html2canvas(element, { scale: 2, logging: false, useCORS: true });
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new window.jspdf.jsPDF({
+                    orientation: 'p',
+                    unit: 'px',
+                    format: [canvas.width, canvas.height]
+                });
+                pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+                pdf.save(`invoice-${invoice.invoiceNumber}.pdf`);
+                
+                // Notify user to attach
+                setTimeout(() => {
+                    toast.success(t('toasts.attachFileInstruction'));
+                }, 800);
+            } catch (e) {
+                console.error("PDF generation failed", e);
+                toast.error(t('toasts.exportFailed'));
+            }
+        }
+
+        // 2. Open Mail Client
         const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
-        window.location.href = mailtoLink;
         
-        // Update app state - if reminder, status might not change, but let parent handle logic
-        // If draft, it becomes SENT. If already SENT/OVERDUE, it stays same unless parent logic dictates.
-        let nextStatus = invoice.status;
-        if (mode === 'send') nextStatus = 'SENT';
-        
-        onSend({ ...invoice, status: nextStatus });
+        setTimeout(() => {
+            window.location.href = mailtoLink;
+            
+            // 3. Update State
+            let nextStatus = invoice.status;
+            if (mode === 'send') nextStatus = 'SENT';
+            
+            onSend({ ...invoice, status: nextStatus });
+            setIsSending(false);
+        }, 1500);
     };
 
     return (
@@ -106,12 +138,14 @@ const SendInvoiceModal: React.FC<SendInvoiceModalProps> = ({ invoice, companyPro
                     <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700 flex flex-col space-y-3">
                         <button 
                             onClick={handleSend}
-                            className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
+                            disabled={isSending}
+                            className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 ${isSending ? 'opacity-75 cursor-not-allowed' : ''}`}
                         >
-                            {mode === 'reminder' ? t('sendInvoice.sendReminderButton') : t('sendInvoice.sendButton')}
+                            {isSending ? t('app.loading') : (mode === 'reminder' ? t('sendInvoice.sendReminderButton') : t('sendInvoice.sendButton'))}
                         </button>
                         <button 
                             onClick={onSkip}
+                            disabled={isSending}
                             className="w-full flex justify-center items-center py-2 px-4 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600"
                         >
                              {t('common.cancel')}
@@ -122,7 +156,7 @@ const SendInvoiceModal: React.FC<SendInvoiceModalProps> = ({ invoice, companyPro
                 {/* Right Side: Invoice Preview */}
                 <div className="w-full md:w-2/3 bg-slate-100 dark:bg-slate-900 p-8 flex justify-center md:h-full md:overflow-y-auto">
                     <div className="w-full max-w-3xl transform scale-90 origin-top">
-                        <div className="bg-white rounded-lg shadow-lg pointer-events-none select-none">
+                        <div id="invoice-preview-capture" className="bg-white rounded-lg shadow-lg pointer-events-none select-none">
                              <InvoicePreview invoice={invoice} companyProfile={companyProfile} />
                         </div>
                     </div>
