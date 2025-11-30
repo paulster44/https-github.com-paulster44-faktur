@@ -2,6 +2,9 @@
 import React, { useState } from 'react';
 import { DocumentTextIcon } from './icons';
 import { useLanguage } from '../i18n/LanguageProvider';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../services/firebase';
+import { toast } from './Toaster';
 
 interface LoginScreenProps {
     onLogin: () => void;
@@ -9,16 +12,33 @@ interface LoginScreenProps {
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
     const { t } = useLanguage();
-    const [email, setEmail] = useState('demo@faktur.app');
-    const [password, setPassword] = useState('demo123');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (email === 'demo@faktur.app' && password === 'demo123') {
-            onLogin();
-        } else {
-            setError(t('login.invalidCredentials'));
+        setIsLoading(true);
+        setError('');
+        
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            // onLogin will be handled by the onAuthStateChanged listener in App.tsx
+        } catch (err: any) {
+            console.error("Login failed", err);
+            let message = t('login.invalidCredentials');
+            if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+                message = t('login.invalidCredentials');
+            } else if (err.code === 'auth/too-many-requests') {
+                message = "Too many failed attempts. Try again later.";
+            } else if (err.message) {
+                message = err.message;
+            }
+            setError(message);
+            toast.error(message);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -84,32 +104,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                         <div>
                             <button
                                 type="submit"
-                                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
+                                disabled={isLoading}
+                                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
                             >
-                                {t('login.signInButton')}
+                                {isLoading ? t('app.loading') : t('login.signInButton')}
                             </button>
                         </div>
                     </form>
-
-                    <div className="mt-6">
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-slate-300 dark:border-slate-600" />
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="px-2 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400">
-                                    {t('login.demoCredentials')}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="mt-6 bg-slate-50 dark:bg-slate-700/50 rounded-md p-4">
-                            <div className="text-sm text-slate-700 dark:text-slate-300">
-                                <p><span className="font-semibold">{t('common.email')}:</span> demo@faktur.app</p>
-                                <p><span className="font-semibold">{t('login.password')}:</span> demo123</p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

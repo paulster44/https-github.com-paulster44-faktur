@@ -18,13 +18,16 @@ import SendInvoiceModal from './components/SendInvoiceModal';
 import InvoiceDetailsModal from './components/InvoiceDetailsModal';
 import { Toaster, toast } from './components/Toaster';
 import { LanguageProvider, useLanguage } from './i18n/LanguageProvider';
+import { auth, db } from './services/firebase';
+import { onAuthStateChanged, signOut, User } from 'firebase/auth';
+import { collection, addDoc, updateDoc, doc, getDocs, query, where, setDoc } from 'firebase/firestore';
 
 export type View = 'home' | 'invoices' | 'clients' | 'items' | 'create-invoice' | 'settings' | 'reports' | 'expenses';
 
 export type SendMode = 'send' | 'resend' | 'reminder';
 
 const MainApp: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
   const [currentView, setCurrentView] = useState<View>('home');
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
@@ -33,6 +36,7 @@ const MainApp: React.FC = () => {
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [dbError, setDbError] = useState<string | null>(null);
   
   // Modal States
   const [sendContext, setSendContext] = useState<{ invoice: Invoice, mode: SendMode } | null>(null);
@@ -41,220 +45,294 @@ const MainApp: React.FC = () => {
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const { t } = useLanguage();
 
+  // 1. Auth Listener
   useEffect(() => {
-    const auth = localStorage.getItem('faktur-auth');
-    if (auth === 'true') {
-        setIsAuthenticated(true);
-    }
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        if (currentUser) {
+            setUser(currentUser);
+        } else {
+            setUser(null);
+            setInvoices([]);
+            setClients([]);
+            setItems([]);
+            setExpenses([]);
+            setCompanyProfile(null);
+            setIsDataLoaded(false);
+        }
+    });
+    return () => unsubscribe();
   }, []);
 
+  // 2. Data Fetching from Firestore
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!user) return;
 
-    try {
-      const storedProfile = localStorage.getItem('faktur-company-profile');
-      if (storedProfile) {
-        setCompanyProfile(JSON.parse(storedProfile));
-      }
+    const fetchData = async () => {
+        try {
+            setDbError(null);
+            // Fetch Profile
+            const profileRef = doc(db, 'settings', `profile_${user.uid}`);
+            const profileSnap = await import('firebase/firestore').then(mod => mod.getDoc(profileRef));
+            if (profileSnap.exists()) {
+                setCompanyProfile(profileSnap.data() as CompanyProfile);
+            }
 
-      const storedInvoices = localStorage.getItem('faktur-invoices');
-      const storedClients = localStorage.getItem('faktur-clients');
-      const storedItems = localStorage.getItem('faktur-items');
-      const storedExpenses = localStorage.getItem('faktur-expenses');
-      
-      setInvoices(storedInvoices && storedInvoices.length > 2 ? JSON.parse(storedInvoices) : mockInvoices);
-      setClients(storedClients && storedClients.length > 2 ? JSON.parse(storedClients) : mockClients);
-      setItems(storedItems && storedItems.length > 2 ? JSON.parse(storedItems) : mockItems);
-      setExpenses(storedExpenses ? JSON.parse(storedExpenses) : []);
-    } catch (e) {
-      console.error("Failed to load data, falling back to mock data.", e);
-      setInvoices(mockInvoices);
-      setClients(mockClients);
-      setItems(mockItems);
-    } finally {
-      setIsDataLoaded(true);
-    }
-  }, [isAuthenticated]);
+            // Fetch Invoices
+            const invoicesQ = query(collection(db, 'invoices'), where('userId', '==', user.uid));
+            const invoicesSnap = await getDocs(invoicesQ);
+            const loadedInvoices = invoicesSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as Invoice));
+            setInvoices(loadedInvoices);
 
-  useEffect(() => {
-    if(!isDataLoaded) return;
-    try {
-      localStorage.setItem('faktur-company-profile', JSON.stringify(companyProfile));
-    } catch (e) {
-      console.error("Failed to save company profile", e);
-    }
-  }, [companyProfile, isDataLoaded]);
+            // Fetch Clients
+            const clientsQ = query(collection(db, 'clients'), where('userId', '==', user.uid));
+            const clientsSnap = await getDocs(clientsQ);
+            const loadedClients = clientsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as Client));
+            setClients(loadedClients);
 
+            // Fetch Items
+            const itemsQ = query(collection(db, 'items'), where('userId', '==', user.uid));
+            const itemsSnap = await getDocs(itemsQ);
+            const loadedItems = itemsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as Item));
+            setItems(loadedItems);
 
-  useEffect(() => {
-    if(!isDataLoaded) return;
-    try {
-      localStorage.setItem('faktur-invoices', JSON.stringify(invoices));
-    } catch (e) {
-      console.error("Failed to save invoices to localStorage", e);
-    }
-  }, [invoices, isDataLoaded]);
+            // Fetch Expenses
+            const expensesQ = query(collection(db, 'expenses'), where('userId', '==', user.uid));
+            const expensesSnap = await getDocs(expensesQ);
+            const loadedExpenses = expensesSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as Expense));
+            setExpenses(loadedExpenses);
 
-  useEffect(() => {
-    if(!isDataLoaded) return;
-    try {
-      localStorage.setItem('faktur-clients', JSON.stringify(clients));
-    } catch(e) {
-      console.error("Failed to save clients to localStorage", e);
-    }
-  }, [clients, isDataLoaded]);
+        } catch (e: any) {
+            console.error("Error fetching data from Firestore", e);
+            if (e.code === 'not-found' || e.message?.includes('database (default) does not exist') || e.code === 'unavailable') {
+                setDbError("Cannot connect to Firestore. Please ensure your project has a Cloud Firestore database created in the Firebase Console.");
+            } else {
+                toast.error("Failed to sync data.");
+            }
+        } finally {
+            setIsDataLoaded(true);
+        }
+    };
 
-  useEffect(() => {
-    if(!isDataLoaded) return;
-    try {
-      localStorage.setItem('faktur-items', JSON.stringify(items));
-    } catch(e) {
-      console.error("Failed to save items to localStorage", e);
-    }
-  }, [items, isDataLoaded]);
-
-  useEffect(() => {
-    if(!isDataLoaded) return;
-    try {
-      localStorage.setItem('faktur-expenses', JSON.stringify(expenses));
-    } catch(e) {
-      console.error("Failed to save expenses to localStorage", e);
-    }
-  }, [expenses, isDataLoaded]);
+    fetchData();
+  }, [user]);
 
   const handleLogin = () => {
-      localStorage.setItem('faktur-auth', 'true');
-      setIsAuthenticated(true);
+      // Login is handled by the Auth Listener
   }
 
-  const handleLogout = () => {
-      localStorage.removeItem('faktur-auth');
-      setIsAuthenticated(false);
+  const handleLogout = async () => {
+      try {
+        await signOut(auth);
+        setUser(null);
+      } catch (e) {
+          console.error("Logout failed", e);
+      }
   }
 
-  const handleSaveProfile = (profile: CompanyProfile) => {
-    const profileToSave = {
-        ...profile,
-        template: profile.template || 'modern',
-    };
-    setCompanyProfile(profileToSave);
-    toast.success(t('toasts.profileSaved'));
+  const handleSaveProfile = async (profile: CompanyProfile) => {
+    if (!user) return;
+    try {
+        const profileToSave = {
+            ...profile,
+            template: profile.template || 'modern',
+            userId: user.uid
+        };
+        await setDoc(doc(db, 'settings', `profile_${user.uid}`), profileToSave);
+        setCompanyProfile(profileToSave);
+        toast.success(t('toasts.profileSaved'));
+    } catch (e) {
+        console.error("Save profile failed", e);
+        toast.error("Failed to save profile.");
+    }
   }
 
-  const addClient = (client: Omit<Client, 'id'>) => {
-    const newClient = { ...client, id: `client-${Date.now()}` };
-    setClients(prevClients => [...prevClients, newClient]);
-    toast.success(t('toasts.clientAdded'));
+  const addClient = async (client: Omit<Client, 'id'>) => {
+    if (!user) return;
+    try {
+        const newClientData = { ...client, userId: user.uid };
+        const docRef = await addDoc(collection(db, 'clients'), newClientData);
+        setClients(prev => [...prev, { ...newClientData, id: docRef.id }]);
+        toast.success(t('toasts.clientAdded'));
+    } catch (e) {
+        console.error(e);
+        toast.error("Failed to add client.");
+    }
   };
 
-  const updateClient = (updatedClient: Client) => {
-    setClients(prevClients => 
-      prevClients.map(client => client.id === updatedClient.id ? updatedClient : client)
-    );
-    toast.success(t('toasts.clientUpdated'));
+  const updateClient = async (updatedClient: Client) => {
+    try {
+        const { id, ...data } = updatedClient;
+        await updateDoc(doc(db, 'clients', id), data as any);
+        setClients(prev => prev.map(c => c.id === id ? updatedClient : c));
+        toast.success(t('toasts.clientUpdated'));
+    } catch (e) {
+        console.error(e);
+        toast.error("Failed to update client.");
+    }
   };
 
-  const deleteClient = (clientId: string) => {
-    setClients(prevClients => prevClients.filter(client => client.id !== clientId));
-    toast.success(t('toasts.clientDeleted'));
+  const deleteClient = async (clientId: string) => {
+    try {
+        await import('firebase/firestore').then(mod => mod.deleteDoc(doc(db, 'clients', clientId)));
+        setClients(prev => prev.filter(c => c.id !== clientId));
+        toast.success(t('toasts.clientDeleted'));
+    } catch (e) {
+        console.error(e);
+        toast.error("Failed to delete client.");
+    }
   };
 
-  const addItem = (item: Omit<Item, 'id'>) => {
-    const newItem = { ...item, id: `item-${Date.now()}` };
-    setItems(prevItems => [...prevItems, newItem]);
-    toast.success(t('toasts.itemAdded'));
+  const addItem = async (item: Omit<Item, 'id'>) => {
+    if (!user) return;
+    try {
+        const newItemData = { ...item, userId: user.uid };
+        const docRef = await addDoc(collection(db, 'items'), newItemData);
+        setItems(prev => [...prev, { ...newItemData, id: docRef.id }]);
+        toast.success(t('toasts.itemAdded'));
+    } catch (e) {
+        console.error(e);
+        toast.error("Failed to add item.");
+    }
   };
 
-  const updateItem = (updatedItem: Item) => {
-    setItems(prevItems =>
-      prevItems.map(item => (item.id === updatedItem.id ? updatedItem : item))
-    );
-    toast.success(t('toasts.itemUpdated'));
+  const updateItem = async (updatedItem: Item) => {
+    try {
+        const { id, ...data } = updatedItem;
+        await updateDoc(doc(db, 'items', id), data as any);
+        setItems(prev => prev.map(i => i.id === id ? updatedItem : i));
+        toast.success(t('toasts.itemUpdated'));
+    } catch (e) {
+        console.error(e);
+        toast.error("Failed to update item.");
+    }
   };
 
-  const deleteItem = (itemId: string) => {
-    setItems(prevItems => prevItems.filter(item => item.id !== itemId));
-    toast.success(t('toasts.itemDeleted'));
+  const deleteItem = async (itemId: string) => {
+    try {
+        await import('firebase/firestore').then(mod => mod.deleteDoc(doc(db, 'items', itemId)));
+        setItems(prev => prev.filter(i => i.id !== itemId));
+        toast.success(t('toasts.itemDeleted'));
+    } catch (e) {
+        console.error(e);
+        toast.error("Failed to delete item.");
+    }
   };
 
-  const addExpense = (expense: Omit<Expense, 'id'>) => {
-    const newExpense = { ...expense, id: `exp-${Date.now()}` };
-    setExpenses(prev => [newExpense, ...prev]);
-    toast.success(t('toasts.expenseAdded'));
+  const addExpense = async (expense: Omit<Expense, 'id'>) => {
+    if (!user) return;
+    try {
+        const newExpenseData = { ...expense, userId: user.uid };
+        const docRef = await addDoc(collection(db, 'expenses'), newExpenseData);
+        setExpenses(prev => [{ ...newExpenseData, id: docRef.id }, ...prev]);
+        toast.success(t('toasts.expenseAdded'));
+    } catch (e) {
+        console.error(e);
+        toast.error("Failed to add expense.");
+    }
   };
 
-  const updateExpense = (updatedExpense: Expense) => {
-    setExpenses(prev => prev.map(e => e.id === updatedExpense.id ? updatedExpense : e));
-    toast.success(t('toasts.expenseUpdated'));
+  const updateExpense = async (updatedExpense: Expense) => {
+    try {
+        const { id, ...data } = updatedExpense;
+        await updateDoc(doc(db, 'expenses', id), data as any);
+        setExpenses(prev => prev.map(e => e.id === id ? updatedExpense : e));
+        toast.success(t('toasts.expenseUpdated'));
+    } catch (e) {
+        console.error(e);
+        toast.error("Failed to update expense.");
+    }
   };
 
-  const deleteExpense = (id: string) => {
-    setExpenses(prev => prev.filter(e => e.id !== id));
-    toast.success(t('toasts.expenseDeleted'));
+  const deleteExpense = async (id: string) => {
+    try {
+        await import('firebase/firestore').then(mod => mod.deleteDoc(doc(db, 'expenses', id)));
+        setExpenses(prev => prev.filter(e => e.id !== id));
+        toast.success(t('toasts.expenseDeleted'));
+    } catch (e) {
+        console.error(e);
+        toast.error("Failed to delete expense.");
+    }
   };
 
-  const saveOrUpdateInvoice = (invoiceData: Invoice | Omit<Invoice, 'id' | 'invoiceNumber'>, action: 'save' | 'send' = 'save') => {
+  const saveOrUpdateInvoice = async (invoiceData: Invoice | Omit<Invoice, 'id' | 'invoiceNumber'>, action: 'save' | 'send' = 'save') => {
+    if (!user) return;
+    
     let savedInvoice: Invoice;
 
-    if ('id' in invoiceData) {
-        // Update existing invoice
-        const updatedInvoice = invoiceData as Invoice;
-        setInvoices(prevInvoices => 
-            prevInvoices.map(inv => (inv.id === updatedInvoice.id ? updatedInvoice : inv))
-        );
-        savedInvoice = updatedInvoice;
-        toast.success(t('toasts.invoiceUpdated', { number: updatedInvoice.invoiceNumber }));
-    } else {
-        // Create new invoice
-        if (!companyProfile) {
-            toast.error(t('toasts.profileNotSet'));
-            return;
-        }
-        const newInvoiceNumber = `${companyProfile.invoiceNumberPrefix}${companyProfile.nextInvoiceNumber}`;
-        const newInvoice: Invoice = { 
-            ...(invoiceData as Omit<Invoice, 'id' | 'invoiceNumber'>), 
-            id: `inv-${Date.now()}`,
-            invoiceNumber: newInvoiceNumber,
-        };
-        setInvoices(prevInvoices => [newInvoice, ...prevInvoices]);
-        setCompanyProfile(prevProfile => {
-            if (!prevProfile) return null;
-            return {
-                ...prevProfile,
-                nextInvoiceNumber: prevProfile.nextInvoiceNumber + 1,
+    try {
+        if ('id' in invoiceData) {
+            // Update existing invoice
+            const updatedInvoice = invoiceData as Invoice;
+            const { id, ...data } = updatedInvoice;
+            await updateDoc(doc(db, 'invoices', id), data as any);
+            
+            setInvoices(prev => prev.map(inv => (inv.id === id ? updatedInvoice : inv)));
+            savedInvoice = updatedInvoice;
+            toast.success(t('toasts.invoiceUpdated', { number: updatedInvoice.invoiceNumber }));
+        } else {
+            // Create new invoice
+            if (!companyProfile) {
+                toast.error(t('toasts.profileNotSet'));
+                return;
+            }
+            const newInvoiceNumber = `${companyProfile.invoiceNumberPrefix}${companyProfile.nextInvoiceNumber}`;
+            const newInvoiceData = { 
+                ...(invoiceData as Omit<Invoice, 'id' | 'invoiceNumber'>), 
+                invoiceNumber: newInvoiceNumber,
+                userId: user.uid
             };
-        });
-        savedInvoice = newInvoice;
-        toast.success(t('toasts.invoiceCreated', { number: newInvoiceNumber }));
+            
+            const docRef = await addDoc(collection(db, 'invoices'), newInvoiceData);
+            const newInvoice = { ...newInvoiceData, id: docRef.id } as Invoice;
+
+            setInvoices(prev => [newInvoice, ...prev]);
+            
+            // Update Next Invoice Number in Profile
+            const nextNum = companyProfile.nextInvoiceNumber + 1;
+            await updateDoc(doc(db, 'settings', `profile_${user.uid}`), { nextInvoiceNumber: nextNum });
+            setCompanyProfile(prev => prev ? ({ ...prev, nextInvoiceNumber: nextNum }) : null);
+
+            savedInvoice = newInvoice;
+            toast.success(t('toasts.invoiceCreated', { number: newInvoiceNumber }));
+        }
+        
+        if (action === 'send') {
+             setSendContext({ invoice: savedInvoice, mode: 'send' });
+        } else {
+            setCurrentView('invoices');
+        }
+        setEditingInvoice(null);
+
+    } catch (e) {
+        console.error("Failed to save invoice", e);
+        toast.error("Failed to save invoice to database.");
     }
-    
-    if (action === 'send') {
-         setSendContext({ invoice: savedInvoice, mode: 'send' });
-    } else {
-        // Just save draft
-        setCurrentView('invoices');
-    }
-    setEditingInvoice(null);
   };
   
   const handleInitiateSend = (invoice: Invoice, mode: SendMode) => {
       setSendContext({ invoice, mode });
   };
 
-  const handleInvoiceSent = (sentInvoice: Invoice) => {
-    // Update the invoice (status might have changed)
-    setInvoices(prev => prev.map(inv => inv.id === sentInvoice.id ? sentInvoice : inv));
-    
-    if (sendContext?.mode === 'reminder') {
-        toast.success(t('toasts.reminderSent'));
-    } else {
-        toast.success(t('toasts.invoiceSent'));
-    }
-    
-    setSendContext(null);
-    // Stay on current view unless we were in creation flow
-    if (currentView === 'create-invoice') {
-        setCurrentView('invoices');
+  const handleInvoiceSent = async (sentInvoice: Invoice) => {
+    // Update the invoice status in DB
+    try {
+        const { id, ...data } = sentInvoice;
+        await updateDoc(doc(db, 'invoices', id), data as any);
+        setInvoices(prev => prev.map(inv => inv.id === id ? sentInvoice : inv));
+        
+        if (sendContext?.mode === 'reminder') {
+            toast.success(t('toasts.reminderSent'));
+        } else {
+            toast.success(t('toasts.invoiceSent'));
+        }
+        
+        setSendContext(null);
+        if (currentView === 'create-invoice') {
+            setCurrentView('invoices');
+        }
+    } catch (e) {
+        console.error(e);
+        toast.error("Failed to update invoice status.");
     }
   };
 
@@ -265,48 +343,76 @@ const MainApp: React.FC = () => {
     }
   }
 
-  const updateInvoice = (invoiceId: string, updatedInvoiceData: Partial<Invoice>) => {
-    setInvoices(prev => {
-        const nextInvoices = prev.map(inv => inv.id === invoiceId ? {...inv, ...updatedInvoiceData} : inv);
-        // If we are viewing this invoice, update the view state as well to reflect changes immediately
-        if (viewingInvoice && viewingInvoice.id === invoiceId) {
-            setViewingInvoice(nextInvoices.find(inv => inv.id === invoiceId) || null);
-        }
-        return nextInvoices;
-    });
+  const updateInvoice = async (invoiceId: string, updatedInvoiceData: Partial<Invoice>) => {
+    try {
+        await updateDoc(doc(db, 'invoices', invoiceId), updatedInvoiceData as any);
+        setInvoices(prev => {
+            const nextInvoices = prev.map(inv => inv.id === invoiceId ? {...inv, ...updatedInvoiceData} : inv);
+            if (viewingInvoice && viewingInvoice.id === invoiceId) {
+                setViewingInvoice(nextInvoices.find(inv => inv.id === invoiceId) || null);
+            }
+            return nextInvoices;
+        });
+    } catch (e) {
+        console.error(e);
+        toast.error("Failed to update invoice.");
+    }
   }
 
   const handleEditInvoice = (invoice: Invoice) => {
     setEditingInvoice(invoice);
     setCurrentView('create-invoice');
-    setViewingInvoice(null); // Close detail view if open
+    setViewingInvoice(null);
   };
 
   const handleViewInvoice = (invoice: Invoice) => {
       setViewingInvoice(invoice);
   }
 
-  const deleteInvoices = (invoiceIds: string[]) => {
-    setInvoices(prevInvoices => prevInvoices.filter(invoice => !invoiceIds.includes(invoice.id)));
-    toast.success(t('toasts.invoicesDeleted', { count: invoiceIds.length }));
+  const deleteInvoices = async (invoiceIds: string[]) => {
+    try {
+        await Promise.all(invoiceIds.map(id => import('firebase/firestore').then(mod => mod.deleteDoc(doc(db, 'invoices', id)))));
+        setInvoices(prevInvoices => prevInvoices.filter(invoice => !invoiceIds.includes(invoice.id)));
+        toast.success(t('toasts.invoicesDeleted', { count: invoiceIds.length }));
+    } catch (e) {
+        console.error(e);
+        toast.error("Failed to delete invoices.");
+    }
   };
 
-  const bulkMarkAsPaid = (invoiceIds: string[]) => {
-    setInvoices(prevInvoices =>
-      prevInvoices.map(invoice =>
-        invoiceIds.includes(invoice.id) && invoice.status !== 'PAID'
-          ? {
-              ...invoice,
-              status: 'PAID' as InvoiceStatus,
-              amountPaid: invoice.total,
+  const bulkMarkAsPaid = async (invoiceIds: string[]) => {
+    try {
+        const updates = invoiceIds.map(id => {
+            const inv = invoices.find(i => i.id === id);
+            if (inv && inv.status !== 'PAID') {
+                return updateDoc(doc(db, 'invoices', id), {
+                    status: 'PAID',
+                    amountPaid: inv.total
+                });
             }
-          : invoice
-      )
-    );
-    toast.success(t('toasts.invoicesMarkedAsPaid', { count: invoiceIds.length }));
+            return Promise.resolve();
+        });
+        await Promise.all(updates);
+
+        setInvoices(prevInvoices =>
+          prevInvoices.map(invoice =>
+            invoiceIds.includes(invoice.id) && invoice.status !== 'PAID'
+              ? {
+                  ...invoice,
+                  status: 'PAID' as InvoiceStatus,
+                  amountPaid: invoice.total,
+                }
+              : invoice
+          )
+        );
+        toast.success(t('toasts.invoicesMarkedAsPaid', { count: invoiceIds.length }));
+    } catch (e) {
+        console.error(e);
+        toast.error("Failed to update invoices.");
+    }
   };
 
-  if (!isAuthenticated) {
+  if (!user) {
       return (
           <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
               <LoginScreen onLogin={handleLogin} />
@@ -315,6 +421,25 @@ const MainApp: React.FC = () => {
   }
 
   const renderContent = () => {
+    if (dbError) {
+        return (
+            <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                <div className="bg-red-50 text-red-800 p-6 rounded-lg max-w-lg border border-red-200 shadow-sm">
+                    <h2 className="text-xl font-bold mb-2">Configuration Required</h2>
+                    <p className="mb-4">{dbError}</p>
+                    <a 
+                        href="https://console.firebase.google.com/" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="inline-block bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
+                    >
+                        Go to Firebase Console
+                    </a>
+                </div>
+            </div>
+        );
+    }
+
     if (!isDataLoaded) {
       return <div className="flex justify-center items-center h-full"><p>{t('app.loading')}</p></div>;
     }
@@ -383,7 +508,7 @@ const MainApp: React.FC = () => {
   return (
     <div className="flex min-h-screen bg-gray-50 text-gray-900 font-sans">
       {/* Sidebar Navigation */}
-      {companyProfile && !sendContext && (
+      {companyProfile && !sendContext && !dbError && (
         <Sidebar 
             currentView={currentView} 
             onNavigate={setCurrentView} 
@@ -394,10 +519,10 @@ const MainApp: React.FC = () => {
       )}
       
       {/* Main Content Area */}
-      <div className={`flex-1 flex flex-col md:ml-64 transition-all duration-300 ${sendContext ? 'ml-0 md:ml-0' : ''}`}>
+      <div className={`flex-1 flex flex-col md:ml-64 transition-all duration-300 ${sendContext || dbError ? 'ml-0 md:ml-0' : ''}`}>
         
         {/* Mobile Top Bar */}
-        {!sendContext && companyProfile && (
+        {!sendContext && companyProfile && !dbError && (
             <Header onMenuClick={() => setIsSidebarOpen(true)} />
         )}
 
@@ -409,7 +534,7 @@ const MainApp: React.FC = () => {
       </div>
       
       {/* Global Invoice Viewer Modal */}
-      {viewingInvoice && companyProfile && !sendContext && (
+      {viewingInvoice && companyProfile && !sendContext && !dbError && (
           <InvoiceDetailsModal 
             invoice={viewingInvoice}
             companyProfile={companyProfile}
