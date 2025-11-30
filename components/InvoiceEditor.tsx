@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { type Client, type Item, type InvoiceLineItem, type Invoice, type CompanyProfile } from '../types';
+import { type Client, type Item, type InvoiceLineItem, type Invoice, type CompanyProfile, type InvoiceTaxDetail } from '../types';
 import { TrashIcon, PlusIcon, EyeIcon } from './icons';
 import { useLanguage } from '../i18n/LanguageProvider';
 import InvoicePreview from './InvoicePreview';
@@ -26,7 +26,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ clients, items, onSave, o
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
     const { t } = useLanguage();
 
-    // Default invoice number display (mock, real logic in backend/onSave usually)
+    // Default invoice number display
     const displayInvoiceNumber = invoiceToEdit?.invoiceNumber || `${companyProfile.invoiceNumberPrefix}${companyProfile.nextInvoiceNumber}`;
 
     useEffect(() => {
@@ -74,11 +74,21 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ clients, items, onSave, o
     
     const addLineItem = () => setLineItems(prev => [...prev, { id: generateId(), description: '', quantity: 1, unitPrice: 0 }]);
     const removeLineItem = (index: number) => setLineItems(prev => prev.filter((_, i) => i !== index));
-    const calculateTotal = () => lineItems.reduce((total, item) => total + (item.quantity * item.unitPrice), 0);
-    const grandTotal = calculateTotal();
-    const taxRate = 0.10; // Mock 10% tax for visual match
-    const taxAmount = grandTotal * taxRate;
-    const finalTotal = grandTotal + taxAmount;
+    
+    // Calculations
+    const subtotal = lineItems.reduce((total, item) => total + (item.quantity * item.unitPrice), 0);
+    
+    // Calculate Taxes based on company profile defaults
+    // Note: In a real app, you might want per-invoice override of tax rates. 
+    // Here we use the company defaults at the time of editing.
+    const taxDetails: InvoiceTaxDetail[] = (companyProfile.defaultTaxes || []).map(tax => ({
+        name: tax.name,
+        rate: tax.rate,
+        amount: subtotal * (tax.rate / 100)
+    }));
+
+    const totalTaxAmount = taxDetails.reduce((sum, tax) => sum + tax.amount, 0);
+    const finalTotal = subtotal + totalTaxAmount;
 
     const saveInvoice = (action: 'save' | 'send') => {
         const selectedClient = clients.find(c => c.id === selectedClientId);
@@ -97,7 +107,9 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ clients, items, onSave, o
             lineItems: validLineItems,
             issueDate,
             dueDate,
-            total: grandTotal, // Logic note: Usually total includes tax, keeping simple for now
+            subtotal,
+            total: finalTotal,
+            taxDetails, // Save the calculated tax breakdown
         };
 
         if (invoiceToEdit) {
@@ -119,7 +131,9 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ clients, items, onSave, o
             status: invoiceToEdit?.status || 'DRAFT',
             issueDate,
             dueDate,
-            total: grandTotal,
+            subtotal,
+            total: finalTotal,
+            taxDetails,
             amountPaid: 0,
             paymentRecords: []
         };
@@ -287,12 +301,22 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ clients, items, onSave, o
                      <div className="w-full max-w-sm space-y-3">
                          <div className="flex justify-between text-sm text-gray-600">
                              <span>Subtotal:</span>
-                             <span className="font-semibold">${grandTotal.toFixed(2)}</span>
+                             <span className="font-semibold">${subtotal.toFixed(2)}</span>
                          </div>
-                         <div className="flex justify-between text-sm text-gray-600">
-                             <span>Tax (10%):</span>
-                             <span className="font-semibold">${taxAmount.toFixed(2)}</span>
-                         </div>
+                         {/* Dynamic Taxes */}
+                         {taxDetails.length > 0 ? (
+                             taxDetails.map((tax, i) => (
+                                 <div key={i} className="flex justify-between text-sm text-gray-600">
+                                     <span>{tax.name} ({tax.rate}%):</span>
+                                     <span className="font-semibold">${tax.amount.toFixed(2)}</span>
+                                 </div>
+                             ))
+                         ) : (
+                             <div className="flex justify-between text-sm text-gray-600">
+                                 <span>Tax:</span>
+                                 <span className="font-semibold">$0.00</span>
+                             </div>
+                         )}
                          <div className="flex justify-between text-sm text-gray-600">
                              <span>Discount:</span>
                              <span className="font-semibold">$0.00</span>

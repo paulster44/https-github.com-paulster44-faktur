@@ -1,10 +1,12 @@
 
-import React, { useState } from 'react';
-import { type CompanyProfile, type Address, type TemplateId } from '../types';
+import React, { useState, useEffect } from 'react';
+import { type CompanyProfile, type Address, type TemplateId, type TaxSetting } from '../types';
 import { useLanguage } from '../i18n/LanguageProvider';
 import { templates } from './templates';
 import { downloadJSON } from '../utils/exportHelpers';
-import { ArrowDownTrayIcon } from './icons';
+import { ArrowDownTrayIcon, PlusIcon, TrashIcon } from './icons';
+import Autocomplete from './Autocomplete';
+import { getCountries, getStatesForCountry, getTaxTypeForRegion, getSuggestedTaxes } from '../utils/geoData';
 
 interface SettingsPageProps {
     companyProfile: CompanyProfile;
@@ -14,6 +16,19 @@ interface SettingsPageProps {
 const SettingsPage: React.FC<SettingsPageProps> = ({ companyProfile, onSave }) => {
     const [profile, setProfile] = useState<CompanyProfile>(companyProfile);
     const { t } = useLanguage();
+
+    // Auto-update tax type when country or state changes
+    useEffect(() => {
+        const suggestedTaxType = getTaxTypeForRegion(profile.address.country, profile.address.state);
+        if (suggestedTaxType && profile.address.country) {
+             setProfile(prev => {
+                 if (prev.taxType !== suggestedTaxType) {
+                     return { ...prev, taxType: suggestedTaxType };
+                 }
+                 return prev;
+             });
+        }
+    }, [profile.address.country, profile.address.state]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -28,6 +43,13 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ companyProfile, onSave }) =
         } else {
             setProfile(prev => ({ ...prev, [name]: value }));
         }
+    };
+
+    const handleAddressChange = (field: keyof Address, value: string) => {
+        setProfile(prev => ({
+            ...prev,
+            address: { ...prev.address, [field]: value }
+        }));
     };
     
     const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,6 +82,37 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ companyProfile, onSave }) =
         }
         const dateStr = new Date().toISOString().split('T')[0];
         downloadJSON(`faktur-backup-${dateStr}.json`, backupData);
+    };
+
+    const handleAddTax = () => {
+        setProfile(prev => ({
+            ...prev,
+            defaultTaxes: [...(prev.defaultTaxes || []), { name: '', rate: 0 }]
+        }));
+    };
+
+    const handleTaxChange = (index: number, field: keyof TaxSetting, value: string) => {
+        setProfile(prev => {
+            const newTaxes = [...(prev.defaultTaxes || [])];
+            newTaxes[index] = {
+                ...newTaxes[index],
+                [field]: field === 'rate' ? parseFloat(value) || 0 : value
+            };
+            return { ...prev, defaultTaxes: newTaxes };
+        });
+    };
+
+    const handleRemoveTax = (index: number) => {
+        setProfile(prev => {
+            const newTaxes = [...(prev.defaultTaxes || [])];
+            newTaxes.splice(index, 1);
+            return { ...prev, defaultTaxes: newTaxes };
+        });
+    };
+
+    const handleResetTaxes = () => {
+        const suggested = getSuggestedTaxes(profile.address.country, profile.address.state);
+        setProfile(prev => ({ ...prev, defaultTaxes: suggested }));
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -145,31 +198,26 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ companyProfile, onSave }) =
                                     <input type="text" name="address.city" value={profile.address.city} onChange={handleChange} required className="mt-1 block w-full rounded-md border-slate-400 dark:border-slate-600 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm bg-white dark:bg-slate-700" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">{t('common.stateProvince')}</label>
-                                    <input type="text" name="address.state" value={profile.address.state} onChange={handleChange} required className="mt-1 block w-full rounded-md border-slate-400 dark:border-slate-600 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm bg-white dark:bg-slate-700" />
-                                </div>
-                                <div>
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">{t('common.postalCode')}</label>
                                     <input type="text" name="address.postalCode" value={profile.address.postalCode} onChange={handleChange} required className="mt-1 block w-full rounded-md border-slate-400 dark:border-slate-600 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm bg-white dark:bg-slate-700" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">{t('common.country')}</label>
-                                    <input type="text" name="address.country" value={profile.address.country} onChange={handleChange} required className="mt-1 block w-full rounded-md border-slate-400 dark:border-slate-600 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm bg-white dark:bg-slate-700" />
-                                </div>
-                            </div>
-                        </div>
-                        
-                        {/* Invoice Numbering */}
-                        <div className="pt-2 space-y-4">
-                            <h3 className="text-lg font-medium text-slate-900 dark:text-white">{t('setup.invoiceNumbering')}</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">{t('setup.prefix')}</label>
-                                    <input type="text" name="invoiceNumberPrefix" value={profile.invoiceNumberPrefix} onChange={handleChange} className="mt-1 block w-full rounded-md border-slate-400 dark:border-slate-600 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm bg-white dark:bg-slate-700" />
+                                    <Autocomplete 
+                                        label={t('common.country')}
+                                        value={profile.address.country}
+                                        onChange={(val) => handleAddressChange('country', val)}
+                                        options={getCountries()}
+                                        required
+                                    />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">{t('settings.nextNumber')}</label>
-                                    <input type="number" name="nextInvoiceNumber" value={profile.nextInvoiceNumber} onChange={handleChange} min="1" required className="mt-1 block w-full rounded-md border-slate-400 dark:border-slate-600 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm bg-white dark:bg-slate-700" />
+                                    <Autocomplete 
+                                        label={t('common.stateProvince')}
+                                        value={profile.address.state}
+                                        onChange={(val) => handleAddressChange('state', val)}
+                                        options={getStatesForCountry(profile.address.country)}
+                                        required
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -185,6 +233,63 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ companyProfile, onSave }) =
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">{t('setup.taxId')}</label>
                                     <input type="text" name="taxNumber" value={profile.taxNumber || ''} onChange={handleChange} className="mt-1 block w-full rounded-md border-slate-400 dark:border-slate-600 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm bg-white dark:bg-slate-700" />
+                                </div>
+                            </div>
+
+                            {/* Dynamic Tax Rates */}
+                             <div className="bg-slate-50 dark:bg-slate-700/50 p-4 rounded-md border border-slate-200 dark:border-slate-600">
+                                 <div className="flex justify-between items-center mb-3">
+                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Default Tax Rates</label>
+                                     <div className="flex space-x-2">
+                                         <button type="button" onClick={handleResetTaxes} className="text-xs text-gray-500 hover:text-gray-700">Auto-Detect</button>
+                                         <button type="button" onClick={handleAddTax} className="text-xs flex items-center text-sky-600 font-semibold hover:text-sky-700">
+                                             <PlusIcon className="h-3 w-3 mr-1" /> Add Tax
+                                         </button>
+                                     </div>
+                                 </div>
+                                 {(!profile.defaultTaxes || profile.defaultTaxes.length === 0) && (
+                                     <p className="text-xs text-slate-500 italic mb-2">No taxes configured. Taxes will not be applied automatically.</p>
+                                 )}
+                                 <div className="space-y-2">
+                                     {(profile.defaultTaxes || []).map((tax, index) => (
+                                         <div key={index} className="flex gap-2 items-center">
+                                             <input 
+                                                type="text" 
+                                                placeholder="Tax Name (e.g. GST)" 
+                                                value={tax.name} 
+                                                onChange={e => handleTaxChange(index, 'name', e.target.value)}
+                                                className="block w-full rounded-md border-slate-400 dark:border-slate-500 text-sm py-1.5 px-2 bg-white"
+                                             />
+                                             <div className="relative w-24 flex-shrink-0">
+                                                 <input 
+                                                    type="number" 
+                                                    placeholder="%" 
+                                                    value={tax.rate} 
+                                                    onChange={e => handleTaxChange(index, 'rate', e.target.value)}
+                                                    className="block w-full rounded-md border-slate-400 dark:border-slate-500 text-sm py-1.5 px-2 bg-white text-right pr-6"
+                                                 />
+                                                 <span className="absolute right-2 top-1.5 text-slate-500 text-sm">%</span>
+                                             </div>
+                                             <button type="button" onClick={() => handleRemoveTax(index)} className="text-red-500 hover:text-red-700 p-1">
+                                                 <TrashIcon className="h-4 w-4" />
+                                             </button>
+                                         </div>
+                                     ))}
+                                 </div>
+                             </div>
+                        </div>
+
+                        {/* Invoice Numbering */}
+                        <div className="pt-2 space-y-4">
+                            <h3 className="text-lg font-medium text-slate-900 dark:text-white">{t('setup.invoiceNumbering')}</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">{t('setup.prefix')}</label>
+                                    <input type="text" name="invoiceNumberPrefix" value={profile.invoiceNumberPrefix} onChange={handleChange} className="mt-1 block w-full rounded-md border-slate-400 dark:border-slate-600 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm bg-white dark:bg-slate-700" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">{t('settings.nextNumber')}</label>
+                                    <input type="number" name="nextInvoiceNumber" value={profile.nextInvoiceNumber} onChange={handleChange} min="1" required className="mt-1 block w-full rounded-md border-slate-400 dark:border-slate-600 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm bg-white dark:bg-slate-700" />
                                 </div>
                             </div>
                         </div>

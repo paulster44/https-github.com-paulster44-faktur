@@ -23,6 +23,11 @@ export interface Address {
   country: string;
 }
 
+export interface TaxSetting {
+    name: string;
+    rate: number; // percentage, e.g., 5 for 5%
+}
+
 export interface CompanyProfile {
     name: string;
     address: Address;
@@ -31,8 +36,9 @@ export interface CompanyProfile {
     logo?: string; // base64 encoded image
     invoiceNumberPrefix: string;
     nextInvoiceNumber: number;
-    taxType?: string;
-    taxNumber?: string;
+    taxType?: string; // Label for the Tax ID (e.g. "GST/QST Number")
+    taxNumber?: string; // The ID itself
+    defaultTaxes: TaxSetting[]; // Array of default tax rates
     template: TemplateId;
 }
 
@@ -67,6 +73,12 @@ export interface PaymentRecord {
     note?: string;
 }
 
+export interface InvoiceTaxDetail {
+    name: string;
+    rate: number;
+    amount: number;
+}
+
 export interface Invoice {
   id: string;
   invoiceNumber: string;
@@ -76,6 +88,8 @@ export interface Invoice {
   issueDate: string; // YYYY-MM-DD
   dueDate: string; // YYYY-MM-DD
   total: number;
+  subtotal?: number;
+  taxDetails: InvoiceTaxDetail[]; // Detailed breakdown saved with the invoice
   amountPaid: number;
   paymentRecords: PaymentRecord[];
 }

@@ -22,6 +22,10 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice, companyProfile
 
     // Ensure lineItems is an array
     const lineItems = invoice.lineItems || [];
+    
+    // Fallback for older invoices that might not have taxDetails saved
+    // We assume subtotal exists or calculate it
+    const subtotal = invoice.subtotal || invoice.lineItems.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
 
     return (
         <div className="invoice-preview-wrapper">
@@ -105,8 +109,19 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice, companyProfile
                         <div className="w-full max-w-xs summary-section">
                             <div className="summary-row flex justify-between py-2 text-slate-600">
                                 <span className="font-medium">{t('common.subtotal')}</span>
-                                <span>{formatCurrency(invoice.total)}</span>
+                                <span>{formatCurrency(subtotal)}</span>
                             </div>
+                            
+                            {/* Render Detailed Taxes if available, otherwise just show gap if no taxes */}
+                            {invoice.taxDetails && invoice.taxDetails.length > 0 ? (
+                                invoice.taxDetails.map((tax, i) => (
+                                    <div key={i} className="summary-row flex justify-between py-2 text-slate-600">
+                                        <span className="font-medium">{tax.name} ({tax.rate}%):</span>
+                                        <span>{formatCurrency(tax.amount)}</span>
+                                    </div>
+                                ))
+                            ) : null}
+
                             <div className="summary-row flex justify-between py-2 text-slate-600">
                                 <span className="font-medium">{t('payments.paid')}</span>
                                 <span>-{formatCurrency(invoice.amountPaid)}</span>
